@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arxiv Viewer</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+</head>
+
+<body>
+    <div id="datePicker"></div>
+    <div id="content"></div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+        $(document).ready(function () {
+            fetch('/read')
+                .then(response => response.json())
+                .then(readData => {
+                    const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+                    const availableDates = Object.keys(readData);
+                    const closestDate = findClosestDate(today, availableDates);
+                    console.log(closestDate)
+                    $('#datePicker').datepicker({
+                        beforeShow: function (input, inst) {
+                            // 在日期选择器弹出之前修改日期单元格内容
+                            console.log('test');
+                            $('td a', inst.dpDiv).each(function () {
+                                const text = $(this).text(); // 获取a标签内的文本
+                                console.log(text);
+                                $(this).parent('td').text(text); // 用文本替换a标签所在的td
+                            });
+                        }, beforeShowDay: function (date) {
+                            const yymmdd = $.datepicker.formatDate('yymmdd', date).slice(2, 8);
+                            if (availableDates.includes(yymmdd)) {
+                                if (readData[yymmdd] === true) {
+                                    return [true, 'highlightgrey', 'Read'];
+                                }
+                                else if (readData[yymmdd] === false) {
+                                    return [true, 'highlight', 'Read'];
+                                }
+                            }
+                            return [false, '', ''];
+                        },
+                        onSelect: function (dateText, inst) {
+                            // Parse the dateText to a Date object
+                            const dateObj = new Date(dateText);
+                            // Format the date to yymmdd
+                            const yy = dateObj.getFullYear().toString().slice(2);
+                            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+                            const dd = String(dateObj.getDate()).padStart(2, '0');
+                            const formattedDate = yy + mm + dd;
+                            fetchData(formattedDate);
+                        }
+                    });
+                    console.log('setting date.'+closestDate);
+                    $("#datepicker").datepicker("setDate", formatDate(closestDate));
+                    fetchData(closestDate);
+                });
+        });
+
+        function findClosestDate(targetDate, availableDates) {
+            let closestDate = availableDates[0];
+            let closestDiff = Math.abs(targetDate - closestDate);
+            for (let i = 1; i < availableDates.length; i++) {
+                const diff = Math.abs(targetDate - availableDates[i]);
+                if (diff < closestDiff) {
+                    closestDiff = diff;
+                    closestDate = availableDates[i];
+                }
+            }
+            return closestDate;
+            // return closestDate.slice(0, 4) + '-' + closestDate.slice(4, 6) + '-' + closestDate.slice(6, 8);
+        }
+
+        function fetchData(date) {
+            updateDate(date);
+            fetch(`/data/${date}`)
+                .then(response => response.json())
+                .then(data => {
+                    const contentDiv = $('#content');
+                    contentDiv.empty();
+                    if (data.message === 'No articles') {
+                        contentDiv.append('<p>No articles</p>');
+                        return;
+                    }
+                    data.forEach(entry => {
+                        const entryDiv = $(`<div class="entry"></div>`);
+                        entryDiv.append(`<h3>${entry.Title}</h3>`);
+                        entryDiv.append(`<p>Authors: ${entry.Authors}</p>`);
+                        entryDiv.append(`<p>Summary: ${entry.Summary}</p>`);
+                        // entryDiv.append(`<a href="${entry['PDF Link']}" target="_blank">PDF Link</a>`);
+                        entryDiv.append(`<button class='mobile-button' onclick="openLink('${entry['pdf Link']}')">Open PDF</button>`);
+                        entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'interesting')">Download intersting</button>`);
+                        entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'related')">Download related</button>`);
+                        contentDiv.append(entryDiv);
+                        contentDiv.data('entry', entry);  // Store the entry data for later use
+                    });
+                });
+        }
+        function openLink(link) {
+        window.open(link, '_blank');
+    }
+
+        function formatDate(dateStr) {
+            // Assuming dateStr is in the format yymmdd
+            const year = '20' + dateStr.slice(0, 2);
+            const month = dateStr.slice(2, 4);
+            const day = dateStr.slice(4, 6);
+            return `${year}-${month}-${day}`;
+        };
+        async function updateDate(yymmdd) {
+            console.log(yymmdd);
+            const response = await fetch('/update-date', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ date: yymmdd })
+            });
+            const result = await response.json();
+            console.log(result);  // Log the response for debugging
+        };
+        async function downloadurl(id,date,type) {
+            console.log(id);
+            const response = await fetch('/download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: id, date:date ,type:type})
+            });
+        };
+    </script>
+</body>
+</html>

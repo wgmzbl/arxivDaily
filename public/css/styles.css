@@ -1,0 +1,39 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+.entry {
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+.highlight, .highlight > a {
+    background-color: green !important;
+    color: white !important;
+}
+.highlightgrey, .highlightgrey > a {
+    background-color: rgb(159, 226, 255) !important;
+    color: white !important;
+}
+
+/* Mobile Button Styles */
+.mobile-button {
+    display: inline-block;
+    padding: 12px 24px; /* 填充确保按钮足够大，易于触摸 */
+    font-size: 16px; /* 字体大小应该易于阅读 */
+    text-align: center;
+    text-decoration: none;
+    border: none; /* 移除边框 */
+    border-radius: 8px; /* 圆角可以使按钮看起来更现代、更友好 */
+    background-color: #008CBA; /* 选择一个易于识别的背景颜色 */
+    color: white; /* 文本颜色应该与背景颜色形成对比 */
+    cursor: pointer; /* 指针样式为手指，表明这是一个可点击的元素 */
+    margin: 8px; /* 添加边距以确保按钮之间和周围有足够的空间 */
+    touch-action: manipulation; /* 提高触摸设备上的触摸效果 */
+    transition: background-color 0.3s ease; /* 添加过渡效果以提供反馈 */
+}
+
+.mobile-button:active {
+    background-color: #005f5f; /* 当按钮被按下时改变背景颜色 */
+}
