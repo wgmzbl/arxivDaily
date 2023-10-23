@@ -2,20 +2,91 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const fetch = require('node-fetch');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const expressSession = require('express-session');
 const fs = require('fs');
+// const helmet = require('helmet');
 const { title } = require('process');
+const bcrypt = require('bcrypt');
+const config = require('./config.json');
 
 const app = express();
 
-const datapath = '.';
+const datapath = config.datapath;
+const username = config.username;
+const password = config.password;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
+// 配置Helmet以设置安全HTTP头
+// app.use(helmet());
+// 设置Ehttps://code.jquery.com
+app.use(express.urlencoded({ extended: true }));
+app.use(expressSession({ secret: config.usercookie, resave: false, saveUninitialized: false , cookie: { maxAge: 86400000*365 }}));
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.get('/login', (req, res) => {
+  if (req.session.user) {
+    return res.redirect('/');
+  }
+  res.send('<form method="post" action="/login"><input type="text" name="username"><input type="password" name="password"><button type="submit">Login</button></form>');
+});
+
+app.post('/login', passport.authenticate('local', {
+  successRedirect: '/',
+  failureRedirect: '/login'
+}));
+
+// 设置身份验证策略
+passport.use(new LocalStrategy((username, password, done) => {
+  // 这里应该检查用户名和密码
+  bcrypt.compare(password, config.password, (err, result) => {
+    if (err) throw err;
+    console.log(bcrypt.hashSync(password, 10));
+    if (result) {
+      console.log('Login successful,');
+      // req.session.user = username;
+      // req.session.usercookie = config.usercookie;
+      return done(null, { username });
+    } else {
+      return done(null, false, { message: 'Invalid credentials' });
+    }
+  });
+}));
+
+passport.serializeUser((user, done) => {
+  done(null, user.username);
+});
+
+passport.deserializeUser((username, done) => {
+  if(username === `${config.username}`) {
+    return done(null, { username });
+  } else {
+    return done(null, false, { message: 'User not found' });
+  }
+});
+
+// 全局身份验证检查中间件
+app.use((req, res, next) => {
+  if (req.session.usercookie=config.usercookie) {
+    return next();
+  }
+  if (req.isAuthenticated()) {
+    return next();
+  } else {
+    res.redirect('/login');
+  }
+});
+
 
 app.get('/', (req, res) => {
+  console.log('rendering index');
   res.render('index');
 });
 
@@ -124,6 +195,6 @@ app.get('/data/:date', (req, res) => {
   });
 });
 
-app.listen(3001, () => {
-  console.log('Server is running on port 3000');
+app.listen(config.server.port, () => {
+  console.log(`Server is running on port ${config.server.port}`);
 });
