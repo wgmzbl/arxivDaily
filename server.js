@@ -141,9 +141,13 @@ app.post('/download', (req, res) => {
       console.log('read type.json error');
     }
     else {
-      console.log(data); 
-		try { obj = JSON.parse(data); }
-      catch (err) { console.log('invalid json'); obj = {} }
+      try {
+        obj = JSON.parse(data);
+      }
+      catch (err) {
+        console.log('invalid json'); 
+        obj = {};
+      }
     }
 
     if (!obj.hasOwnProperty(id)) {
@@ -180,8 +184,7 @@ app.post('/download', (req, res) => {
       });
 
       const mdContent = `### **${titlepaper}**\n**${authors}**\n- [PDF Link](${url})\n- Abstract: ${summary}\n\n`;
-      fs.appendFile(`${datapath}/${type}.md`, mdContent, (err) => {console.log(`${datapath}/${type}.md`);console.log(err)});
-      //fs.appendFile(`/root/onedrive/${type}.md`, mdContent, (err) => {console.log(`${datapath}/${type}.md`);console.log(err)});
+      fs.appendFile(`${datapath}/${type}.md`, mdContent, (err) => { console.log(`${datapath}/${type}.md`); console.log(err) });
       // res.json({ message: 'Downloaded successfully!' });
       // return;
     }
