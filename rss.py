@@ -8,7 +8,7 @@ def load_config(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         config = json.load(file)
     return config
-# 加载配置
+
 config_path = 'config.json'  # 请根据需要更改路径
 config = load_config(config_path)
 
