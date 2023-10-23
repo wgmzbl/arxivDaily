@@ -35,7 +35,7 @@ def get_new_arxiv_entries(category):
 
 def save_to_json(entries, update_date):
     # 确保当前目录下的data目录存在
-    data_dir = f'${config["datapath"]}/data'
+    data_dir = f'{config["datapath"]}/data'
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     filename = f'{data_dir}/{update_date}.json'
@@ -52,6 +52,7 @@ def update_json_file(update_date):
         data = {**existing_data, **data}  # 合并现有数据和新数据
     with open(json_filename, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
+
 def main():
     category = config['arxivclass']
     # 获取要保存的文件的名称
