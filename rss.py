@@ -4,6 +4,14 @@ import re
 import time
 import os
 
+def load_config(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        config = json.load(file)
+    return config
+# 加载配置
+config_path = 'config.json'  # 请根据需要更改路径
+config = load_config(config_path)
+
 def get_new_arxiv_entries(category):
     url = f'http://arxiv.org/rss/{category}'
     feed = feedparser.parse(url)
@@ -27,7 +35,7 @@ def get_new_arxiv_entries(category):
 
 def save_to_json(entries, update_date):
     # 确保当前目录下的data目录存在
-    data_dir = './data'
+    data_dir = f'${config["datapath"]}/data'
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     filename = f'{data_dir}/{update_date}.json'
@@ -36,7 +44,7 @@ def save_to_json(entries, update_date):
     update_json_file(update_date)
 
 def update_json_file(update_date):
-    json_filename = './read.json'
+    json_filename = f'{config["datapath"]}/read.json'
     data = {update_date: False}
     if os.path.exists(json_filename):
         with open(json_filename, 'r', encoding='utf-8') as f:
@@ -45,12 +53,12 @@ def update_json_file(update_date):
     with open(json_filename, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 def main():
-    category = 'math.DG'
+    category = config['arxivclass']
     # 获取要保存的文件的名称
     url = f'http://arxiv.org/rss/{category}'
     feed = feedparser.parse(url)
     update_date = time.strftime('%y%m%d', feed.updated_parsed)
-    filename = f'./data/{update_date}.json'
+    filename = f'{config["datapath"]}/data/{update_date}.json'
     # 检查文件是否已存在
     if not os.path.exists(filename):
         entries, update_date = get_new_arxiv_entries(category)
