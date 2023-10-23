@@ -135,8 +135,10 @@ app.post('/download', (req, res) => {
   console.log('url: ' + url);
 
   fs.readFile(`${datapath}/${type}.json`, 'utf8', (err, data) => {
-    if (err) { let obj = {} }
-    else { let obj = JSON.parse(data); }
+	let obj ={}
+    if (err) { obj = {};console.log('read type.json error'); }
+    else { console.log(data);try{obj= JSON.parse(data);}
+	catch(err){console.log('invalid json'); obj={}}}
 
     if (!obj.hasOwnProperty(id)) {
       obj[id] = {};
