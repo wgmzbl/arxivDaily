@@ -120,10 +120,8 @@
                         const entryDiv = $(`<div class="entry"></div>`);
                         entryDiv.append(`<h3>${entry.Title}</h3>`);
                         entryDiv.append(`<p>Authors: ${entry.Authors}</p>`);
-                        // entryDiv.append(`<p>Summary: ${renderLatex(entry.Summary)}</p>`);
                         entryDiv.append(`<p>Summary: ${entry.Summary}</p>`);
-                        // entryDiv.append(`<a href="${entry['PDF Link']}" target="_blank">PDF Link</a>`);
-                        entryDiv.append(`<button class='mobile-button' onclick="openLink('${entry['pdf Link']}')">Open PDF</button>`);
+                        entryDiv.append(`<button class='mobile-button' onclick="openLink('${entry['PDF Link']}')">Open PDF</button>`);
                         entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'interesting')">Download intersting</button>`);
                         entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'related')">Download related</button>`);
                         contentDiv.append(entryDiv);
@@ -144,6 +142,7 @@
                 });
         }
         function openLink(link) {
+            console.log(link);
             window.open(link, '_blank');
         }
 
