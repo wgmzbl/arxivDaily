@@ -51,8 +51,6 @@ passport.use(new LocalStrategy((username, password, done) => {
     console.log(bcrypt.hashSync(password, 10));
     if (result) {
       console.log('Login successful,');
-      // req.session.user = username;
-      // req.session.usercookie = config.usercookie;
       return done(null, { username });
     } else {
       return done(null, false, { message: 'Invalid credentials' });
@@ -74,9 +72,9 @@ passport.deserializeUser((username, done) => {
 
 // 全局身份验证检查中间件
 app.use((req, res, next) => {
-  if (req.session.usercookie = config.usercookie) {
-    return next();
-  }
+  // if (req.session.usercookie = config.usercookie) {
+  //   return next();
+  // }
   if (req.isAuthenticated()) {
     return next();
   } else {
