@@ -6,6 +6,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const expressSession = require('express-session');
 const fs = require('fs');
+const katex = require('katex');
 // const helmet = require('helmet');
 const { title } = require('process');
 const bcrypt = require('bcryptjs');
