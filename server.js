@@ -25,7 +25,7 @@ app.use(express.json());
 // app.use(helmet());
 // 设置Ehttps://code.jquery.com
 app.use(express.urlencoded({ extended: true }));
-app.use(expressSession({ secret: config.usercookie, resave: false, saveUninitialized: false , cookie: { maxAge: 86400000*365 }}));
+app.use(expressSession({ secret: config.usercookie, resave: false, saveUninitialized: false, cookie: { maxAge: 86400000 * 365 } }));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -65,7 +65,7 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser((username, done) => {
-  if(username === `${config.username}`) {
+  if (username === `${config.username}`) {
     return done(null, { username });
   } else {
     return done(null, false, { message: 'User not found' });
@@ -74,7 +74,7 @@ passport.deserializeUser((username, done) => {
 
 // 全局身份验证检查中间件
 app.use((req, res, next) => {
-  if (req.session.usercookie=config.usercookie) {
+  if (req.session.usercookie = config.usercookie) {
     return next();
   }
   if (req.isAuthenticated()) {
@@ -135,8 +135,8 @@ app.post('/download', (req, res) => {
   console.log('url: ' + url);
 
   fs.readFile(`${datapath}/${type}.json`, 'utf8', (err, data) => {
-    if (err) throw err;
-    let obj = JSON.parse(data);
+    if (err) { obj = {} }
+    else { let obj = JSON.parse(data); }
 
     if (!obj.hasOwnProperty(id)) {
       obj[id] = {};
@@ -146,10 +146,10 @@ app.post('/download', (req, res) => {
       obj[id]['url'] = url;
 
       authorlist = authors.split(', ');
-      authorstr="";
+      authorstr = "";
       authorlist.forEach(author => {
-        authorname=author.split(' ');
-        authorstr += authorname[authorname.length-1]+", ";
+        authorname = author.split(' ');
+        authorstr += authorname[authorname.length - 1] + ", ";
       });
       authorstr = authorstr.slice(0, -2);
       console.log('Fetching pdf...');
@@ -172,7 +172,7 @@ app.post('/download', (req, res) => {
       });
 
       const mdContent = `### **${titlepaper}**\n**${authors}**\n- [PDF Link](${url})\n- Abstract: ${summary}\n\n`;
-      fs.appendFileSync(`${datapath}/${type}.md`, mdContent);
+      fs.appendFile(`${datapath}/${type}.md`, mdContent);
       // res.json({ message: 'Downloaded successfully!' });
       // return;
     }
