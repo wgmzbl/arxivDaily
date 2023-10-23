@@ -8,7 +8,7 @@ const expressSession = require('express-session');
 const fs = require('fs');
 // const helmet = require('helmet');
 const { title } = require('process');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const config = require('./config.json');
 
 const app = express();
