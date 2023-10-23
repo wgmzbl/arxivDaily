@@ -135,10 +135,15 @@ app.post('/download', (req, res) => {
   console.log('url: ' + url);
 
   fs.readFile(`${datapath}/${type}.json`, 'utf8', (err, data) => {
-	let obj ={}
-    if (err) { obj = {};console.log('read type.json error'); }
-    else { console.log(data);try{obj= JSON.parse(data);}
-	catch(err){console.log('invalid json'); obj={}}}
+    let obj = {}
+    if (err) {
+      obj = {};
+      console.log('read type.json error');
+    }
+    else {
+      console.log(data); try { obj = JSON.parse(data); }
+      catch (err) { console.log('invalid json'); obj = {} }
+    }
 
     if (!obj.hasOwnProperty(id)) {
       obj[id] = {};
@@ -174,7 +179,7 @@ app.post('/download', (req, res) => {
       });
 
       const mdContent = `### **${titlepaper}**\n**${authors}**\n- [PDF Link](${url})\n- Abstract: ${summary}\n\n`;
-      fs.appendFile(`${datapath}/${type}.md`, mdContent);
+      fs.appendFile(`${datapath}/${type}.md`, mdContent, (err) => {console.log(err)});
       // res.json({ message: 'Downloaded successfully!' });
       // return;
     }
