@@ -12,6 +12,7 @@ def load_config(file_path):
 config_path = 'config.json'  # 请根据需要更改路径
 config = load_config(config_path)
 
+
 def get_new_arxiv_entries(category):
     url = f'http://arxiv.org/rss/{category}'
     feed = feedparser.parse(url)
