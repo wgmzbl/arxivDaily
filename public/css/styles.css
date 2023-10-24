@@ -74,6 +74,8 @@ body {
     background: none;
     box-shadow: none;
     font-weight: normal;
+    text-align: center;
+    color:black;
 }
 /* 基础容器样式 */
 .ui-datepicker {
@@ -127,11 +129,23 @@ body {
     border-radius: 50%;
     color: #444;
 }
+
+.ui-datepicker-calendar a,
+.ui-datepicker-calendar span{
+    background-color: rgba(0, 0, 0, 0);
+    text-align: center;
+}
 .ui-datepicker-current-day{
     background-color: brown;
 }
+.ui-datepicker-current-day a{
+    color: white;
+}
 .ui-datepicker-today{
     box-shadow: 0 0 0 2px black;
+}
+.ui-datepicker-current-day span{
+    color: white;
 }
 .ui-datepicker-calendar td a{
     /* display: flex; */
