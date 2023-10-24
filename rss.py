@@ -39,8 +39,10 @@ def save_to_json(entries, update_date):
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     filename = f'{data_dir}/{update_date}.json'
+    print(filename)
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(entries, f, ensure_ascii=False, indent=4)
+        print(f'write to {filename} success!')
     update_json_file(update_date)
 
 def update_json_file(update_date):
