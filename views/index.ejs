@@ -5,8 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arxiv Viewer</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
@@ -20,6 +18,8 @@
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.js"
         integrity="sha384-ImWHyYvDPlRzwFnvLhG9Jcpm/7qL4SVIuJK0C6Rj+Mf7fpeNJCLCynC+EVz4kCSA"
         crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="/css/styles.css">
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             renderMathInElement(document.body, {
@@ -62,17 +62,18 @@
                                 console.log(text);
                                 $(this).parent('td').text(text); // 用文本替换a标签所在的td
                             });
-                        }, beforeShowDay: function (date) {
+                        }, 
+                        beforeShowDay: function (date) {
                             const yymmdd = $.datepicker.formatDate('yymmdd', date).slice(2, 8);
                             if (availableDates.includes(yymmdd)) {
                                 if (readData[yymmdd] === true) {
-                                    return [true, 'highlightgrey', 'Read'];
+                                    return [true, 'highlightgrey ui-datepicker-day', 'Read'];
                                 }
                                 else if (readData[yymmdd] === false) {
-                                    return [true, 'highlight', 'Read'];
+                                    return [true, 'highlight ui-datepicker-day', 'Read'];
                                 }
                             }
-                            return [false, '', ''];
+                            return [false, 'ui-datepicker-day', 'un'];
                         },
                         onSelect: function (dateText, inst) {
                             // Parse the dateText to a Date object
