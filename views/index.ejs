@@ -116,29 +116,57 @@
                         contentDiv.append('<p>No articles</p>');
                         return;
                     }
-                    data.forEach(entry => {
-                        const entryDiv = $(`<div class="entry"></div>`);
-                        entryDiv.append(`<h3>${entry.Title}</h3>`);
-                        entryDiv.append(`<p>Authors: ${entry.Authors}</p>`);
-                        entryDiv.append(`<p>Summary: ${entry.Summary}</p>`);
-                        entryDiv.append(`<button class='mobile-button' onclick="openLink('${entry['PDF Link']}')">Open PDF</button>`);
-                        entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'interesting')">Download intersting</button>`);
-                        entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'related')">Download related</button>`);
-                        contentDiv.append(entryDiv);
-                        contentDiv.data('entry', entry);  // Store the entry data for later use
-                        renderMathInElement(document.body, {
-                            // customised options
-                            // • auto-render specific keys, e.g.:
-                            delimiters: [
-                                { left: '$$', right: '$$', display: true },
-                                { left: '$', right: '$', display: false },
-                                { left: '\\(', right: '\\)', display: false },
-                                { left: '\\[', right: '\\]', display: true }
-                            ],
-                            // • rendering keys, e.g.:
-                            throwOnError: false
-                        });
-                    });
+                    ['New', 'Update'].forEach(
+                        strs => {
+                            contentDiv.append(`<h2>${strs}</h2>`);
+                            data[strs].forEach(entry => {
+                                const entryDiv = $(`<div class="entry"></div>`);
+                                entryDiv.append(`<div class="entry-title">${entry.Title}</div>`);
+                                entryDiv.append(`<p class="entry-author">Authors: ${entry.Authors}</p>`);
+                                entryDiv.append(`<p class="entry-summary">Summary: ${entry.Summary}</p>`);
+                                entryDiv.append(`<button class='mobile-button' onclick="openLink('${entry['PDF Link']}')">Open PDF</button>`);
+                                entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'interesting')">Download intersting</button>`);
+                                entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'related')">Download related</button>`);
+                                contentDiv.append(entryDiv);
+                                contentDiv.data('entry', entry);  // Store the entry data for later use
+                                renderMathInElement(document.body, {
+                                    // customised options
+                                    // • auto-render specific keys, e.g.:
+                                    delimiters: [
+                                        { left: '$$', right: '$$', display: true },
+                                        { left: '$', right: '$', display: false },
+                                        { left: '\\(', right: '\\)', display: false },
+                                        { left: '\\[', right: '\\]', display: true }
+                                    ],
+                                    // • rendering keys, e.g.:
+                                    throwOnError: false
+                                });
+                            });
+                        }
+                    )
+                    // data.forEach(entry => {
+                    //     const entryDiv = $(`<div class="entry"></div>`);
+                    //     entryDiv.append(`<h3>${entry.Title}</h3>`);
+                    //     entryDiv.append(`<p>Authors: ${entry.Authors}</p>`);
+                    //     entryDiv.append(`<p>Summary: ${entry.Summary}</p>`);
+                    //     entryDiv.append(`<button class='mobile-button' onclick="openLink('${entry['PDF Link']}')">Open PDF</button>`);
+                    //     entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'interesting')">Download intersting</button>`);
+                    //     entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'related')">Download related</button>`);
+                    //     contentDiv.append(entryDiv);
+                    //     contentDiv.data('entry', entry);  // Store the entry data for later use
+                    //     renderMathInElement(document.body, {
+                    //         // customised options
+                    //         // • auto-render specific keys, e.g.:
+                    //         delimiters: [
+                    //             { left: '$$', right: '$$', display: true },
+                    //             { left: '$', right: '$', display: false },
+                    //             { left: '\\(', right: '\\)', display: false },
+                    //             { left: '\\[', right: '\\]', display: true }
+                    //         ],
+                    //         // • rendering keys, e.g.:
+                    //         throwOnError: false
+                    //     });
+                    // });
                 });
         }
         function openLink(link) {

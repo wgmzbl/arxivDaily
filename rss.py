@@ -15,21 +15,28 @@ config = load_config(config_path)
 def get_new_arxiv_entries(category):
     url = f'http://arxiv.org/rss/{category}'
     feed = feedparser.parse(url)
-    entries = []
+    entries = {
+            "New":[],
+            "Update":[]
+        }
     for entry in feed.entries:
+        title = re.sub(r'\(arXiv:[^\)]+\)', '', entry.title).strip()
+        authors = ", ".join(re.sub(r'<.*?>|\(.*\)', '', author.name).strip() for author in entry.authors)
+        arxiv_id = entry.id.split('/')[-1]
+        pdf_link = f'https://arxiv.org/pdf/{arxiv_id}.pdf'
+        summary = re.sub(r'<.*?>','',entry.summary).strip()
         if "UPDATED" not in entry.title:
-            title = re.sub(r'\(arXiv:[^\)]+\)', '', entry.title).strip()
-            authors = ", ".join(re.sub(r'<.*?>|\(.*\)', '', author.name).strip() for author in entry.authors)
-            arxiv_id = entry.id.split('/')[-1]
-            pdf_link = f'https://arxiv.org/pdf/{arxiv_id}.pdf'
-            summary = re.sub(r'<.*?>','',entry.summary).strip()
-            entries.append({
-                'Title': title,
-                'Authors': authors,
-                'Arxiv ID': arxiv_id,
-                'PDF Link': pdf_link,
-                'Summary': summary
-            })
+            flag = 'New'
+        else:
+            flag = 'Update'
+        entries[flag].append({
+            'Title': title,
+            'Authors': authors,
+            'Arxiv ID': arxiv_id,
+            'PDF Link': pdf_link,
+            'Summary': summary,
+            'category': category
+        })
     update_date = time.strftime('%y%m%d', feed.updated_parsed)
     return entries, update_date
 
