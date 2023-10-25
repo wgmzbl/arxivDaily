@@ -15,8 +15,6 @@ const config = require('./config.json');
 const app = express();
 
 const datapath = config.datapath;
-const username = config.username;
-const password = config.password;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -43,7 +41,6 @@ app.post('/login', passport.authenticate('local', {
   successRedirect: '/',
   failureRedirect: '/login'
 }));
-
 // 设置身份验证策略
 passport.use(new LocalStrategy((username, password, done) => {
   // 这里应该检查用户名和密码
@@ -71,128 +68,222 @@ passport.deserializeUser((username, done) => {
   }
 });
 
-// 全局身份验证检查中间件
-app.use((req, res, next) => {
-  // if (req.session.usercookie = config.usercookie) {
-  //   return next();
-  // }
-  if (req.isAuthenticated()) {
-    return next();
+// // 全局身份验证检查中间件
+// app.use((req, res, next) => {
+//   if (req.isAuthenticated()) {
+//     return next();
+//   } else {
+//     res.redirect('/login');
+//   }
+// });
+
+function checkIfLogin(req) {
+  console.log('check login.');
+  return req.session && req.session.passport && req.session.passport.user;
+}
+
+function checkLogin(req, res, next) {
+  console.log('check login.');
+  // 用户已登录
+  if (checkIfLogin(req)) {
+    res.locals.loggedIn = true;
+    res.locals.user = req.session.user;  // 可选：传递用户信息给模板
   } else {
-    res.redirect('/login');
+    // 用户未登录
+    res.locals.loggedIn = false;
   }
-});
+  next();
+}
 
+function check(category, data) {
+  if ((/^[a-zA-Z\.]+$/.test(category) && (/^[0-9\.]+$/.test(data)))) {
+    return true;
+  }
+  return false;
+}
 
-app.get('/', (req, res) => {
+app.get('/', checkLogin, (req, res) => {
   console.log('rendering index');
-  res.render('index');
+  res.render('index', { category: 'math.DG' });
 });
 
 app.post('/update-date', (req, res) => {
+  // Check if date is read
   const yymmdd = req.body.date;
-  console.log(yymmdd);
+  const category = req.body.category;
+  if (!check(category, yymmdd)) {
+    res.json({ message: 'Invalid request!' });
+    return;
+  }
 
   fs.readFile(`${datapath}/read.json`, (err, data) => {
     if (err) throw err;
     const json = JSON.parse(data);
-    json[yymmdd] = true;
-    fs.writeFile(`${datapath}/read.json`, JSON.stringify(json, null, 2), (err) => {
-      if (err) throw err;
-      res.json({ message: 'Date updated successfully!' });
-    });
+    if (category in json && yymmdd in json[category] && json[category][yymmdd] == false) {
+      json[category][yymmdd] = true;
+      fs.writeFile(`${datapath}/read.json`, JSON.stringify(json, null, 2), (err) => {
+        if (err) throw err;
+        res.json({ message: 'Date updated successfully!' });
+      });
+    }
   });
 });
 
-app.get('/read', (req, res) => {
+app.get('/categories', (req, res) => {
+  // Get all categories
+  res.json({ categories: config.categories });
+});
+
+app.get('/read/:category', (req, res) => {
+  // Get read status of a category on a date
+  category = req.params.category;
+  if (!/^[a-zA-Z\.]+$/.test(category)) {
+    res.json({ message: 'Invalid request!' });
+    return;
+  }
+
+  // check if isread category on date
   fs.readFile(`${datapath}/read.json`, 'utf8', (err, data) => {
     if (err) {
       res.status(404).send('File not found');
       return;
     }
-    res.json(JSON.parse(data));
-  });
-});
-
-app.post('/download', (req, res) => {
-  const id = req.body.id;
-  const yymmdd = req.body.date;
-  const type = req.body.type;
-  const filePath = `${datapath}/data/${yymmdd}.json`;
-
-  console.log(id);
-  console.log("date: " + yymmdd);
-  const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-  data.forEach(entry => {
-    if (entry['Arxiv ID'] == id) {
-      url = entry['PDF Link'];
-      titlepaper = entry['Title'];
-      authors = entry['Authors'];
-      summary = entry['Summary'];
-    }
-  });
-  console.log('url: ' + url);
-
-  fs.readFile(`${datapath}/${type}.json`, 'utf8', (err, data) => {
-    let obj = {}
-    if (err) {
-      obj = {};
-      console.log('read type.json error');
+    if (category in JSON.parse(data)) {
+      res.json(JSON.parse(data)[category]);
     }
     else {
-      try {
-        obj = JSON.parse(data);
-      }
-      catch (err) {
-        console.log('invalid json'); 
-        obj = {};
-      }
-    }
-
-    if (!obj.hasOwnProperty(id)) {
-      obj[id] = {};
-      obj[id]['title'] = titlepaper;
-      obj[id]['authors'] = authors;
-      obj[id]['summary'] = summary;
-      obj[id]['url'] = url;
-
-      authorlist = authors.split(', ');
-      authorstr = "";
-      authorlist.forEach(author => {
-        authorname = author.split(' ');
-        authorstr += authorname[authorname.length - 1] + ", ";
-      });
-      authorstr = authorstr.slice(0, -2);
-      console.log('Fetching pdf...');
-      fetch(url).then(response => {
-        if (response.ok) {
-          return response.buffer();
-        }
-      })
-        .then(buffer => {
-          const fileName = `${authorstr}-${id.slice(0, 2)}-${titlepaper.replace(/[\.\$\\/:*?"<>|]/g, '')}.pdf`;
-          console.log(fileName);
-          fs.writeFileSync(`${datapath}/${type}/${fileName}`, buffer);
-        });
-      console.log('save md');
-
-      let jsonStr = JSON.stringify(obj, null, 2);
-      fs.writeFile(`${datapath}/${type}.json`, jsonStr, (err) => {
-        if (err) throw err;
-        console.log('Data written to file');
-      });
-
-      const mdContent = `### **${titlepaper}**\n**${authors}**\n- [PDF Link](${url})\n- Abstract: ${summary}\n\n`;
-      fs.appendFile(`${datapath}/${type}.md`, mdContent, (err) => { console.log(`${datapath}/${type}.md`); console.log(err) });
-      // res.json({ message: 'Downloaded successfully!' });
-      // return;
+      res.json({ message: 'Invalid request!' });
     }
   });
-  res.json({ message: 'Finished' });
 });
-app.get('/data/:date', (req, res) => {
+
+
+app.get('/closedAvaliableData/:category/:data', (req, res) => {
+  // Get closed avaliable data of a category on a date
+  const category = req.params.category;
+  const data = req.params.data;
+  if (!check(category, data)) {
+    res.json({ message: 'Invalid request!' });
+    return;
+  }
+
+  fs.readFile(`${datapath}/read.json`, 'utf8', (err, data) => {
+    if (err) {
+      res.status(404).send('File not found');
+      return;
+    }
+    res.json(JSON.parse(data)[category]);
+  });
+});
+
+app.post('/download', checkLogin, (req, res) => {
+  if (!checkIfLogin(req)) {
+    return res.json({ error: 'Not logged in' });
+  }
+  // Download pdf, fetching info and save it to json and md
+
+  const id = req.body.id;
+  const yymmdd = req.body.date;
+  const type = req.body.type; //interesting or related
+  const category = req.body.category;
+  if (!check(category, yymmdd)) {
+    console.log('invaid category');
+    res.json({ message: 'Invalid request!' });
+    return;
+  }
+  if (!(/^[0-9]{4}\.[0-9v]{4,7}$/.test(id))) {
+    console.log('invaid id');
+    res.json({ message: 'Invalid request!' });
+    return;
+  }
+  if (!/^[a-zA-Z]+$/.test(type)) {
+    console.log('invaid type');
+    res.json({ message: 'Invalid request!' });
+    return;
+  }
+
+  const filePath = `${datapath}/${category}/${yymmdd}.json`;
+
+  const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+  for (let key in data) {
+    data[key].forEach(entry => {
+      if (entry['Arxiv ID'] == id) {
+        url = entry['PDF Link'];
+        titlepaper = entry['Title'];
+        authors = entry['Authors'];
+        summary = entry['Summary'];
+        comments = entry['Comments'] ? entry['Comments'] : "";
+        subjects = entry['Subjects'] ? entry['Subjects'] : {};
+      }
+    });
+  }
+console.log('url: ' + url);
+
+fs.readFile(`${datapath}/${type}.json`, 'utf8', (err, data) => {
+  let obj = {}
+  if (err) {
+    obj = {};
+    console.log('read type.json error');
+  }
+  else {
+    try {
+      obj = JSON.parse(data);
+    }
+    catch (err) {
+      console.log('invalid json');
+      obj = {};
+    }
+  }
+
+  if (!obj.hasOwnProperty(id)) {
+    obj[id] = {};
+    obj[id]['title'] = titlepaper;
+    obj[id]['authors'] = authors;
+    obj[id]['summary'] = summary;
+    obj[id]['url'] = url;
+    obj[id]['comments'] = comments;
+    obj[id]['subjects'] = subjects;
+
+    authorlist = authors.split(', ');
+    authorstr = "";
+    authorlist.forEach(author => {
+      authorname = author.split(' ');
+      authorstr += authorname[authorname.length - 1] + ", ";
+    });
+    authorstr = authorstr.slice(0, -2);
+    console.log('Fetching pdf...');
+    fetch(url).then(response => {
+      if (response.ok) {
+        return response.buffer();
+      }
+    })
+      .then(buffer => {
+        const fileName = `${authorstr}-${id.slice(0, 2)}-${titlepaper.replace(/[\.\$\\/:*?"<>|]/g, '')}.pdf`;
+        console.log('Write to file ' +fileName);
+        fs.writeFileSync(`${datapath}/${type}/${fileName}`, buffer);
+      });
+
+    let jsonStr = JSON.stringify(obj, null, 2);
+    fs.writeFile(`${datapath}/${type}.json`, jsonStr, (err) => {
+      if (err) throw err;
+    });
+
+    const mdContent = `### **${titlepaper}**\n**${authors}**\n- [PDF Link](${url})\n - Category: ${category}\n - Arxiv ID: ${id}\n - Comments: ${comments}\n - Abstract: ${summary}\n\n`;
+    fs.appendFile(`${datapath}/${type}.md`, mdContent, (err) => { console.log(`write to ${datapath}/${type}.md`);  });
+  }
+});
+res.json({ message: 'Finished' });
+});
+
+
+app.get('/:category/:date', (req, res) => {
+  // Get articles of a category on a date
+  const category = req.params.category
   const date = req.params.date;
-  const filePath = `${datapath}/data/${date}.json`;
+  if (!check(category, date)) {
+    res.json({ message: 'Invalid request!' });
+  }
+  const filePath = `${datapath}/${category}/${date}.json`;
   if (!fs.existsSync(filePath)) {
     res.json({ message: 'No articles' });
     return;
@@ -206,8 +297,26 @@ app.get('/data/:date', (req, res) => {
   });
 });
 
+app.get('/:category', checkLogin, (req, res) => {
+  // Get all dates of a category
+  const category = req.params.category;
+  if (!/^[a-zA-Z\.]+$/.test(category)) {
+    res.json({ message: 'Invalid request!' });
+    return;
+  }
+
+  fs.readdir(`${datapath}/${category}`, (err, files) => {
+    if (err) {
+      res.status(404).send('File not found');
+      return;
+    }
+    res.render('index', { category: category });
+  });
+});
+app.use((req, res, next) => {
+  res.status(404).send('Sorry, we cannot find that!');
+});
+
 app.listen(config.server.port, () => {
   console.log(`Server is running on port ${config.server.port}`);
-  //fs.appendFileSync('/root/onedrive/arxivdaily/related.md',"abc");
-  //fs.appendFileSync('../../onedrive/related.md',"abc");
 });

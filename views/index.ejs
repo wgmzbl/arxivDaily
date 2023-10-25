@@ -2,232 +2,388 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arxiv Viewer</title>
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
-        integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
-        integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
-        crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
-        onload="renderMathInElement(document.body);"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.js"
-        integrity="sha384-ImWHyYvDPlRzwFnvLhG9Jcpm/7qL4SVIuJK0C6Rj+Mf7fpeNJCLCynC+EVz4kCSA"
-        crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <link rel="stylesheet" href="/css/styles.css">
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            renderMathInElement(document.body, {
-                // customised options
-                // • auto-render specific keys, e.g.:
-                delimiters: [
-                    { left: '$$', right: '$$', display: true },
-                    { left: '$', right: '$', display: false },
-                    { left: '\\(', right: '\\)', display: false },
-                    { left: '\\[', right: '\\]', display: true }
-                ],
-                // • rendering keys, e.g.:
-                throwOnError: false
-            });
-        });
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arxiv Viewer</title>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.js" integrity="sha384-ImWHyYvDPlRzwFnvLhG9Jcpm/7qL4SVIuJK0C6Rj+Mf7fpeNJCLCynC+EVz4kCSA" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+        // customised options
+        // • auto-render specific keys, e.g.:
+        delimiters: [{
+            left: '$$',
+            right: '$$',
+            display: true
+          },
+          {
+            left: '$',
+            right: '$',
+            display: false
+          },
+          {
+            left: '\\(',
+            right: '\\)',
+            display: false
+          },
+          {
+            left: '\\[',
+            right: '\\]',
+            display: true
+          }
+        ],
+        // • rendering keys, e.g.:
+        throwOnError: false
+      });
+    });
+  </script>
 </head>
 
 <body>
-    <div id="datePicker"></div>
-    <div id="content"></div>
+  <div id="category"></div>
+  <div id="settingsMenu" class="hidden">
+    <label>
+      <input class="toggleCheckbox" type="checkbox" checked id="toggleCalendar">
+      <span class="slider"></span> <!-- This is the toggle switch -->
+      Show calendar
+    </label>
+    <label>
+      <input class="toggleCheckbox" type="checkbox" checked id="toggleAuthors">
+      <span class="slider"></span> <!-- This is the toggle switch -->
+      Show authors
+    </label>
+    <label>
+      <input class="toggleCheckbox" type="checkbox" id="toggleComments">
+      <span class="slider"></span> <!-- This is the toggle switch -->
+      Show comments
+    </label>
+    <label>
+      <input class="toggleCheckbox" type="checkbox" id="toggleSubmitTime">
+      <span class="slider"></span> <!-- This is the toggle switch -->
+      Show submit time
+    </label>
+    <label>
+      <input class="toggleCheckbox" type="checkbox" checked id="toggleSubjects">
+      <span class="slider"></span> <!-- This is the toggle switch -->
+      Show subjects
+    </label>
+    <label>
+      <input class="toggleCheckbox" type="checkbox" checked id="toggleSummary">
+      <span class="slider"></span> <!-- This is the toggle switch -->
+      Show summary
+    </label>
+  </div>
+  <button id="settingsBtn" class="settings-icon"><i class="fas fa-cog"></i></button>
+  <div id="datePicker" , class="calendar"></div>
+  <div id="content"></div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script>
-        $(document).ready(function () {
-            fetch('/read')
-                .then(response => response.json())
-                .then(readData => {
-                    const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
-                    const availableDates = Object.keys(readData);
-                    const closestDate = findClosestDate(today, availableDates);
-                    console.log(closestDate)
-                    $('#datePicker').datepicker({
-                        beforeShow: function (input, inst) {
-                            // 在日期选择器弹出之前修改日期单元格内容
-                            console.log('test');
-                            $('td a', inst.dpDiv).each(function () {
-                                const text = $(this).text(); // 获取a标签内的文本
-                                console.log(text);
-                                $(this).parent('td').text(text); // 用文本替换a标签所在的td
-                            });
-                        }, 
-                        beforeShowDay: function (date) {
-                            const yymmdd = $.datepicker.formatDate('yymmdd', date).slice(2, 8);
-                            if (availableDates.includes(yymmdd)) {
-                                if (readData[yymmdd] === true) {
-                                    return [true, 'highlightgrey ui-datepicker-day', 'Read'];
-                                }
-                                else if (readData[yymmdd] === false) {
-                                    return [true, 'highlight ui-datepicker-day', 'Read'];
-                                }
-                            }
-                            return [false, 'ui-datepicker-day', 'un'];
-                        },
-                        onSelect: function (dateText, inst) {
-                            // Parse the dateText to a Date object
-                            const dateObj = new Date(dateText);
-                            // Format the date to yymmdd
-                            const yy = dateObj.getFullYear().toString().slice(2);
-                            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-                            const dd = String(dateObj.getDate()).padStart(2, '0');
-                            const formattedDate = yy + mm + dd;
-                            fetchData(formattedDate);
-                        }
-                    });
-                    console.log('setting date.' + closestDate);
-                    $("#datepicker").datepicker("setDate", formatDate(closestDate));
-                    fetchData(closestDate);
-                });
-        });
-
-        function findClosestDate(targetDate, availableDates) {
-            let closestDate = availableDates[0];
-            let closestDiff = Math.abs(targetDate - closestDate);
-            for (let i = 1; i < availableDates.length; i++) {
-                const diff = Math.abs(targetDate - availableDates[i]);
-                if (diff < closestDiff) {
-                    closestDiff = diff;
-                    closestDate = availableDates[i];
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script>
+    $(document).ready(function() {
+      fetch('/read/<%= category %>')
+        .then(response => response.json())
+        .then(readData => {
+          if ("message" in readData) {
+            console.log(readData.message);
+            return;
+          }
+          const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+          const availableDates = Object.keys(readData);
+          const closestDate = findClosestDate(today, availableDates);
+          console.log(closestDate)
+          $('#datePicker').datepicker({
+            beforeShow: function(input, inst) {
+              // 在日期选择器弹出之前修改日期单元格内容
+              $('td a', inst.dpDiv).each(function() {
+                const text = $(this).text(); // 获取a标签内的文本
+                console.log(text);
+                $(this).parent('td').text(text); // 用文本替换a标签所在的td
+              });
+            },
+            beforeShowDay: function(date) {
+              const yymmdd = $.datepicker.formatDate('yymmdd', date).slice(2, 8);
+              if (availableDates.includes(yymmdd)) {
+                <% if (loggedIn) { %>
+                if (readData[yymmdd] === true) {
+                  return [true, 'highlightgrey ui-datepicker-day', 'Read'];
+                } else if (readData[yymmdd] === false) {
+                  return [true, 'highlight ui-datepicker-day', 'Read'];
                 }
+                <% } else { %>
+                return [true, 'highlightgrey ui-datepicker-day', 'Read'];
+                <% } %>
+              }
+              return [false, 'ui-datepicker-day', 'un'];
+            },
+            onSelect: function(dateText, inst) {
+              // Parse the dateText to a Date object
+              const dateObj = new Date(dateText);
+              // Format the date to yymmdd
+              const yy = dateObj.getFullYear().toString().slice(2);
+              const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+              const dd = String(dateObj.getDate()).padStart(2, '0');
+              const formattedDate = yy + mm + dd;
+              console.log('<%= category %>');
+              fetchData(formattedDate, '<%= category %>');
             }
-            return closestDate;
-            // return closestDate.slice(0, 4) + '-' + closestDate.slice(4, 6) + '-' + closestDate.slice(6, 8);
-        }
+          });
+          showMenu();
+          console.log('setting date.' + closestDate);
+          $("#datepicker").datepicker("setDate", formatDate(closestDate));
+          fetchData(closestDate, '<%= category %>');
+        });
+    });
 
-        function fetchData(date) {
-            updateDate(date);
-            fetch(`/data/${date}`)
-                .then(response => response.json())
-                .then(data => {
-                    const contentDiv = $('#content');
-                    contentDiv.empty();
-                    if (data.message === 'No articles') {
-                        contentDiv.append('<p>No articles</p>');
-                        return;
+    function showMenu() {
+      fetch('/categories')
+        .then(response => response.json())
+        .then(categories => {
+          const contentDiv = $('#category');
+          const contentMenu = $(`<ul class="menu"></ul>`);
+          contentDiv.empty();
+          contentDiv.append(`<ul class="menu">`);
+          console.log(categories);
+          if ("categories" in categories) {
+            categories["categories"].forEach(category => {
+              contentMenu.append(`<li class="${('<%=category%>'=== category) ? 'active' : '' }"><a href="/${category}">${category}</a></li>`);
+            });
+          }
+          contentDiv.append(contentMenu);
+        });
+    }
+
+    function findClosestDate(targetDate, availableDates) {
+      let closestDate = availableDates[0];
+      let closestDiff = Math.abs(targetDate - closestDate);
+      for (let i = 1; i < availableDates.length; i++) {
+        const diff = Math.abs(targetDate - availableDates[i]);
+        if (diff < closestDiff) {
+          closestDiff = diff;
+          closestDate = availableDates[i];
+        }
+      }
+      return closestDate;
+    }
+
+    function triggerAllCheckboxes() {
+      let checkboxes = document.querySelectorAll('.toggleCheckbox');
+      checkboxes.forEach(checkbox => {
+        checkbox.dispatchEvent(new Event('change', {
+          'bubbles': true
+        }));
+      });
+    }
+
+    function fetchData(date, category) {
+      <% if (loggedIn) { %>
+      updateDate(date);
+      <% } %>
+      console.log(category + ' ' + date);
+      fetch(`/${category}/${date}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+          const contentDiv = $('#content');
+          contentDiv.empty();
+          if ('message' in data) {
+            if (data.message === 'No articles') {
+              contentDiv.append(`<p>${data.message}</p>`);
+              return;
+            } else {
+              contentDiv.append('<p>Invalid request</p>');
+              return;
+            }
+          }
+
+          ['New', 'Update'].forEach(
+            strs => {
+              contentDiv.append(`<h2>${strs}</h2>`);
+              data[strs].forEach(entry => {
+                const entryDiv = $(`<div class="entry"></div>`);
+                entryDiv.append(`<div class="entry-title">${entry.Title}</div>`);
+                entryDiv.append(`<p class="entry-author authors">Authors: ${entry.Authors}</p>`);
+                if (entry['arxiv_comment']) {
+                  entryDiv.append(`<p class="entry-comments comments">Comments: ${entry['arxiv_comment']}</p>`);
+                }
+                if (entry.subject) {
+                  const contentP = $(`<p class="entry-subjects subjects">Subjects: </p>`);
+                  if (entry.subject.primary_subject) {
+                    contentP.append(`<span class="primaryCategory">${entry.subject.primary_subject}</span>`);
+                  }
+                  if (entry.subject.other_subjects) {
+                    entry.subject.other_subjects.forEach(subject => {
+                      contentP.append(`<span class="secondaryCategory">${subject}</span>`);
+                    });
+                  }
+                  entryDiv.append(contentP);
+                }
+                if (entry.submitTime){
+                  entryDiv.append(`<p class="entry-submitTime submitTime">Submit time: ${entry.submitTime}</p>`);
+                }
+                entryDiv.append(`<p class="entry-summary summary">Summary: ${entry.Summary}</p>`);
+                entryDiv.append(`<button class='mobile-button' onclick="openLink('${entry['PDF Link']}')">Open PDF</button>`);
+                <% if (loggedIn) { %>
+                entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'interesting', '<%=category%>')">Download intersting</button>`);
+                entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'related', '<%=category%>')">Download related</button>`);
+                <% } %>
+                contentDiv.append(entryDiv);
+                triggerAllCheckboxes();
+                contentDiv.data('entry', entry); // Store the entry data for later use
+                renderMathInElement(document.body, {
+                  // customised options
+                  // • auto-render specific keys, e.g.:
+                  delimiters: [{
+                      left: '$$',
+                      right: '$$',
+                      display: true
+                    },
+                    {
+                      left: '$',
+                      right: '$',
+                      display: false
+                    },
+                    {
+                      left: '\\(',
+                      right: '\\)',
+                      display: false
+                    },
+                    {
+                      left: '\\[',
+                      right: '\\]',
+                      display: true
                     }
-                    ['New', 'Update'].forEach(
-                        strs => {
-                            contentDiv.append(`<h2>${strs}</h2>`);
-                            data[strs].forEach(entry => {
-                                const entryDiv = $(`<div class="entry"></div>`);
-                                entryDiv.append(`<div class="entry-title">${entry.Title}</div>`);
-                                entryDiv.append(`<p class="entry-author">Authors: ${entry.Authors}</p>`);
-                                entryDiv.append(`<p class="entry-summary">Summary: ${entry.Summary}</p>`);
-                                entryDiv.append(`<button class='mobile-button' onclick="openLink('${entry['PDF Link']}')">Open PDF</button>`);
-                                entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'interesting')">Download intersting</button>`);
-                                entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'related')">Download related</button>`);
-                                contentDiv.append(entryDiv);
-                                contentDiv.data('entry', entry);  // Store the entry data for later use
-                                renderMathInElement(document.body, {
-                                    // customised options
-                                    // • auto-render specific keys, e.g.:
-                                    delimiters: [
-                                        { left: '$$', right: '$$', display: true },
-                                        { left: '$', right: '$', display: false },
-                                        { left: '\\(', right: '\\)', display: false },
-                                        { left: '\\[', right: '\\]', display: true }
-                                    ],
-                                    // • rendering keys, e.g.:
-                                    throwOnError: false
-                                });
-                            });
-                        }
-                    )
-                    // data.forEach(entry => {
-                    //     const entryDiv = $(`<div class="entry"></div>`);
-                    //     entryDiv.append(`<h3>${entry.Title}</h3>`);
-                    //     entryDiv.append(`<p>Authors: ${entry.Authors}</p>`);
-                    //     entryDiv.append(`<p>Summary: ${entry.Summary}</p>`);
-                    //     entryDiv.append(`<button class='mobile-button' onclick="openLink('${entry['PDF Link']}')">Open PDF</button>`);
-                    //     entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'interesting')">Download intersting</button>`);
-                    //     entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'related')">Download related</button>`);
-                    //     contentDiv.append(entryDiv);
-                    //     contentDiv.data('entry', entry);  // Store the entry data for later use
-                    //     renderMathInElement(document.body, {
-                    //         // customised options
-                    //         // • auto-render specific keys, e.g.:
-                    //         delimiters: [
-                    //             { left: '$$', right: '$$', display: true },
-                    //             { left: '$', right: '$', display: false },
-                    //             { left: '\\(', right: '\\)', display: false },
-                    //             { left: '\\[', right: '\\]', display: true }
-                    //         ],
-                    //         // • rendering keys, e.g.:
-                    //         throwOnError: false
-                    //     });
-                    // });
+                  ],
+                  throwOnError: false
                 });
-        }
-        function openLink(link) {
-            console.log(link);
-            window.open(link, '_blank');
-        }
+              });
+            }
+          )
+        });
+    }
 
-        function formatDate(dateStr) {
-            // Assuming dateStr is in the format yymmdd
-            const year = '20' + dateStr.slice(0, 2);
-            const month = dateStr.slice(2, 4);
-            const day = dateStr.slice(4, 6);
-            return `${year}-${month}-${day}`;
-        };
-        async function updateDate(yymmdd) {
-            console.log(yymmdd);
-            const response = await fetch('/update-date', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ date: yymmdd })
-            });
-            const result = await response.json();
-            console.log(result);  // Log the response for debugging
-        };
-        async function downloadurl(id, date, type) {
-            console.log(id);
-            const response = await fetch('/download', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ id: id, date: date, type: type })
-            });
-        };
-        function renderLatex(text) {
-            // 处理双美元符号$$...$$
-            const doubleDollarRegex = /\$\$(.*?)\$\$/g;
-            text = text.replace(doubleDollarRegex, (match, p1) => {
-                const rendered = katex.renderToString(p1, {
-                    displayMode: true,  // 这表示是显示模式
-                    throwOnError: false
-                });
-                return rendered;
-            });
+    function openLink(link) {
+      console.log(link);
+      window.open(link, '_blank');
+    }
 
-            // 处理单美元符号$...$
-            const singleDollarRegex = /\$(.*?)\$/g;
-            text = text.replace(singleDollarRegex, (match, p1) => {
-                const rendered = katex.renderToString(p1, {
-                    displayMode: false,  // 这表示是内联模式
-                    throwOnError: false
-                });
-                return rendered;
-            });
+    function formatDate(dateStr) {
+      // Assuming dateStr is in the format yymmdd
+      const year = '20' + dateStr.slice(0, 2);
+      const month = dateStr.slice(2, 4);
+      const day = dateStr.slice(4, 6);
+      return `${year}-${month}-${day}`;
+    };
+    <% console.log(loggedIn); %>
+    <% if (loggedIn) { %>
+    async function updateDate(yymmdd) {
+      console.log(yymmdd);
+      const response = await fetch('/update-date', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          date: yymmdd,
+          category: '<%= category %>'
+        })
+      });
+      const result = await response.json();
+      console.log(result); // Log the response for debugging
+    };
+    <% } %>
+    <% if (loggedIn) { %>
+    async function downloadurl(id, date, type, category) {
+      console.log(id);
+      const response = await fetch('/download', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: id,
+          date: date,
+          type: type,
+          category: category
+        })
+      });
+    };
+    <% } %>
 
-            return text;
+    function renderLatex(text) {
+      // 处理双美元符号$$...$$
+      const doubleDollarRegex = /\$\$(.*?)\$\$/g;
+      text = text.replace(doubleDollarRegex, (match, p1) => {
+        const rendered = katex.renderToString(p1, {
+          displayMode: true, // 这表示是显示模式
+          throwOnError: false
+        });
+        return rendered;
+      });
+
+      // 处理单美元符号$...$
+      const singleDollarRegex = /\$(.*?)\$/g;
+      text = text.replace(singleDollarRegex, (match, p1) => {
+        const rendered = katex.renderToString(p1, {
+          displayMode: false, // 这表示是内联模式
+          throwOnError: false
+        });
+        return rendered;
+      });
+
+      return text;
+    }
+
+    function lowercaseFirstLetter(str) {
+      return str.charAt(0).toLowerCase() + str.slice(1);
+    }
+    // Toggle settings menu
+    document.getElementById('settingsBtn').addEventListener('click', function() {
+      const menu = document.getElementById('settingsMenu');
+      menu.classList.toggle('hidden');
+    });
+
+    // Array of all settings checkboxes
+
+    const settingsCheckboxes = ['toggleCalendar', 'toggleAuthors', 'toggleComments', 'toggleSubjects', 'toggleSubmitTime', 'toggleSummary'];
+
+    settingsCheckboxes.forEach(function(checkboxId) {
+      const checkbox = document.getElementById(checkboxId);
+      const contentId = lowercaseFirstLetter(checkboxId.replace('toggle', ''));
+      console.log(contentId);
+      let contents = document.querySelectorAll(`.${contentId}`); // Get all elements with 'content-class' class
+
+      // Apply stored settings
+      if (localStorage.getItem(checkboxId) === 'true') {
+        checkbox.checked = true;
+        contents.forEach(content => content.classList.remove('hidden'));
+      } else if (localStorage.getItem(checkboxId) === 'false') {
+        checkbox.checked = false;
+        contents.forEach(content => content.classList.add('hidden'));
+      }
+
+      // Update content visibility and store settings when changed
+      console.log(checkboxId);
+      console.log(checkbox);
+      checkbox.addEventListener('change', function() {
+        let contents = document.querySelectorAll(`.${contentId}`); // Get all elements with 'content-class' class
+        if (this.checked) {
+          contents.forEach(content => content.classList.remove('hidden'));
+        } else {
+          contents.forEach(content => content.classList.add('hidden'));
         }
-    </script>
+        localStorage.setItem(checkboxId, this.checked);
+      });
+    });
+  </script>
 </body>
 
 </html>

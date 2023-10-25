@@ -3,6 +3,29 @@ import json
 import re
 import time
 import os
+import requests
+from xml.etree import ElementTree
+
+def get_arxiv_details(arxiv_id):
+    url = f'http://export.arxiv.org/api/query?id_list={arxiv_id}'
+    response = requests.get(url)
+    tree = ElementTree.fromstring(response.content)
+    
+    ns = {'arxiv': 'http://arxiv.org/schemas/atom'}
+    for entry in tree.findall('{http://www.w3.org/2005/Atom}entry'):
+        comment_elem = entry.find('arxiv:comment', ns)
+        primary_subject_elem = entry.find('arxiv:primary_category', ns)
+        submitTime_elem = entry.find('{http://www.w3.org/2005/Atom}published')
+        all_subject_elems = entry.findall('{http://www.w3.org/2005/Atom}category')
+        
+        comment = comment_elem.text if comment_elem is not None else ""
+        submitTime = submitTime_elem.text if submitTime_elem is not None else ""
+        primary_subject = primary_subject_elem.get('term') if primary_subject_elem is not None else ""
+        
+        other_subjects = [elem.get('term') for elem in all_subject_elems if elem.get('term') != primary_subject]
+        
+        return comment, submitTime, primary_subject, other_subjects
+    return "", "", "", []
 
 def load_config(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -16,6 +39,8 @@ config = load_config(config_path)
 def get_new_arxiv_entries(category):
     url = f'http://arxiv.org/rss/{category}'
     feed = feedparser.parse(url)
+    # with open(f'test.json', 'w', encoding='utf-8') as f:
+        # json.dump(feed, f, ensure_ascii=False, indent=2)
     entries = {
             "New":[],
             "Update":[]
@@ -30,52 +55,69 @@ def get_new_arxiv_entries(category):
             flag = 'New'
         else:
             flag = 'Update'
+        comment, submitTime, primary_subject, other_subjects = get_arxiv_details(arxiv_id)
         entries[flag].append({
             'Title': title,
             'Authors': authors,
             'Arxiv ID': arxiv_id,
             'PDF Link': pdf_link,
             'Summary': summary,
-            'category': category
+            'arxiv_comment': comment,
+            'submitTime': submitTime,
+            'subject': {
+                'primary_subject': primary_subject,
+                'other_subjects': other_subjects
+            }
         })
     update_date = time.strftime('%y%m%d', feed.updated_parsed)
+    print(update_date)
+    print(entries)
     return entries, update_date
 
-def save_to_json(entries, update_date):
+def save_to_json(entries, update_date,category):
+    # 确保entries 非空。
+    if entries['New'] is None and entries['Update'] is None:
+        print("No articles!")
+        return
     # 确保当前目录下的data目录存在
-    data_dir = f'{config["datapath"]}/data'
+    data_dir = f'{config["datapath"]}/{category}'
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     filename = f'{data_dir}/{update_date}.json'
-    print(filename)
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(entries, f, ensure_ascii=False, indent=4)
         print(f'write to {filename} success!')
-    update_json_file(update_date)
+    update_json_file(update_date, category)
 
-def update_json_file(update_date):
+def update_json_file(update_date, category):
     json_filename = f'{config["datapath"]}/read.json'
     data = {update_date: False}
     if os.path.exists(json_filename):
         with open(json_filename, 'r', encoding='utf-8') as f:
             existing_data = json.load(f)
-        data = {**existing_data, **data}  # 合并现有数据和新数据
+        if category in existing_data:
+            existing_data[category][update_date]=False
+        else:
+            existing_data[category]={update_date: False}
+    else:
+        existing_data={category:{update_date:False}}
     with open(json_filename, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+        json.dump(existing_data, f, ensure_ascii=False, indent=2)
 
 def main():
-    category = config['arxivclass']
-    # 获取要保存的文件的名称
-    url = f'http://arxiv.org/rss/{category}'
-    feed = feedparser.parse(url)
-    update_date = time.strftime('%y%m%d', feed.updated_parsed)
-    filename = f'{config["datapath"]}/data/{update_date}.json'
-    # 检查文件是否已存在
-    if not os.path.exists(filename):
-        entries, update_date = get_new_arxiv_entries(category)
-        save_to_json(entries, update_date)
-    else:
-        print(f'The file {filename} already exists. No action taken.')
+    categories = config['categories']
+    for category in categories:
+        url = f'http://arxiv.org/rss/{category}'
+        feed = feedparser.parse(url)
+        update_date = time.strftime('%y%m%d', feed.updated_parsed)
+        filename = f'{config["datapath"]}/{category}/{update_date}.json'
+        if not os.path.exists(f'{config["datapath"]}/{category}'):
+            os.makedirs(f'{config["datapath"]}/{category}')
+        if not os.path.exists(filename):
+            entries, update_date = get_new_arxiv_entries(category)
+            save_to_json(entries, update_date, category)
+        else:
+            print(f'The file {filename} already exists. No action was taken.')
 
 if __name__ == '__main__':
     main()

@@ -128,6 +128,7 @@ body {
     text-align: center;
     border-radius: 50%;
     color: #444;
+    transition: background-color 0.4s ease;
 }
 
 .ui-datepicker-calendar a,
@@ -183,4 +184,132 @@ body {
     .ui-datepicker-calendar td {
         padding: 3px;
     }
+}
+
+.menu {
+    list-style: none;
+    display: flex;
+    padding: 0;
+    margin: 0 0 20px 0;
+    width: 100%;         /* Ensure the menu spans the entire width */
+    background-color: #fff; /* Give it a background color to overlay content */
+}
+
+.menu li {
+    padding: 8px 12px;
+    background-color: #f4f4f4;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.menu li:hover {
+    background-color: #e0e0e0;
+}
+
+.menu li a {
+    text-decoration: none;
+    color: #333;
+}
+
+.menu .active {
+    background-color: #007BFF;
+    color: white;
+}
+
+.menu .active:hover {
+    background-color: #2980b9;  /* Slightly darker shade for hover on active */
+}
+
+.menu .active a {
+    color: white;
+}
+
+.hidden {
+    display: none;
+}
+
+#settingsBtn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    transition: color 0.3s;  /* Smooth transition for color change */
+    color: #333;             /* Default color of the cog icon */
+    z-index: 999;
+}
+
+#settingsBtn:hover {
+    color: #555;             /* Slightly darker when hovered */
+}
+
+#settingsMenu {
+    position: fixed;
+    top: 50px;
+    right: 10px;
+    border: none;
+    padding: 20px 25px;      /* Updated padding for a spacious look */
+    background-color: #f7f7f7;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    width: 250px;
+    z-index: 1000;
+}
+
+#settingsMenu label {
+    display: block;
+    margin-bottom: 18px;
+    font-size: 18px;         /* Increased font size */
+    color: #333;
+    position: relative;
+    padding-left: 60px;      /* Space for the toggle switch */
+    cursor: pointer;
+    user-select: none;       /* Prevent text from being selectable */
+}
+
+#settingsMenu input[type="checkbox"] {
+    display: none;
+}
+
+/* iOS Toggle Switch Styling */
+#settingsMenu input[type="checkbox"] + .slider {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+    width: 50px;
+    height: 30px;
+    background-color: #ccc;
+    border-radius: 15px;
+    transition: background-color 0.3s;
+}
+
+#settingsMenu input[type="checkbox"]:checked + .slider {
+    background-color: #4CAF50;
+}
+
+#settingsMenu .slider:before {
+    content: "";
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    background-color: #fff;
+    border-radius: 50%;
+    left: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: left 0.3s;
+}
+
+#settingsMenu input[type="checkbox"]:checked + .slider:before {
+    left: 22px;
+}
+
+.primaryCategory, .secondaryCategory{
+    margin: 5px;
+}
+.primaryCategory {
+    font-weight: bold;
 }
