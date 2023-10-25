@@ -225,7 +225,7 @@ body {
 }
 
 /* Mobile styles using media query */
-@media (max-width: 4000px) {
+@media (max-width: 768px) {
     .menu {
         flex-direction: column; /* Stack items vertically */
         position: absolute;     /* Changed from fixed for demo */
@@ -266,7 +266,7 @@ body {
 }
 
 /* Mobile styles using media query */
-@media (max-width: 4000px) {
+@media (max-width: 768px) {
     .menu-toggle {
         display: block; /* Show the button on smaller screens */
     }
