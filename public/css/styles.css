@@ -224,6 +224,54 @@ body {
     color: white;
 }
 
+/* Mobile styles using media query */
+@media (max-width: 4000px) {
+    .menu {
+        flex-direction: column; /* Stack items vertically */
+        position: absolute;     /* Changed from fixed for demo */
+        width: 100%;            /* Take full width */
+        top: 60px;              /* Position below a hypothetical header */
+        left: 0;
+        display: none;          /* By default menu will be hidden */
+    }
+
+    .menu-item {
+        margin: 0;             /* Remove horizontal margins */
+        padding: 10px;
+        text-align: center;    /* Center the text */
+    }
+
+    /* We can add a toggle button for the menu */
+    .menu-toggle {
+        display: block;        /* Show the toggle button */
+    }
+}
+
+.menu-toggle {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    display: none; /* Initially hidden for larger screens */
+    position: relative;
+    z-index: 10001; /* Ensure it stays above the menu */
+}
+
+.bar {
+    width: 25px;
+    height: 3px;
+    background-color: #333;
+    margin: 4px 0;
+    transition: 0.4s;
+}
+
+/* Mobile styles using media query */
+@media (max-width: 4000px) {
+    .menu-toggle {
+        display: block; /* Show the button on smaller screens */
+    }
+}
+
 .hidden {
     display: none;
 }

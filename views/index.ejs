@@ -48,6 +48,11 @@
 </head>
 
 <body>
+  <div><button class="menu-toggle">
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+</button></div>
   <div id="category"></div>
   <div id="settingsMenu" class="hidden">
     <label>
@@ -150,7 +155,6 @@
           const contentDiv = $('#category');
           const contentMenu = $(`<ul class="menu"></ul>`);
           contentDiv.empty();
-          contentDiv.append(`<ul class="menu">`);
           console.log(categories);
           if ("categories" in categories) {
             categories["categories"].forEach(category => {
@@ -226,7 +230,7 @@
                   }
                   entryDiv.append(contentP);
                 }
-                if (entry.submitTime){
+                if (entry.submitTime) {
                   entryDiv.append(`<p class="entry-submitTime submitTime">Submit time: ${entry.submitTime}</p>`);
                 }
                 entryDiv.append(`<p class="entry-summary summary">Summary: ${entry.Summary}</p>`);
@@ -382,6 +386,16 @@
         }
         localStorage.setItem(checkboxId, this.checked);
       });
+    });
+    const menuToggle = document.querySelector('.menu-toggle');
+
+    menuToggle.addEventListener('click', function() {
+    const menu = document.querySelector('.menu');
+      if (menu.style.display === 'none' || menu.style.display === '') {
+        menu.style.display = 'block';
+      } else {
+        menu.style.display = 'none';
+      }
     });
   </script>
 </body>
