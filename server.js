@@ -106,9 +106,11 @@ app.post('/update-date', (req, res) => {
       fs.writeFile(`${datapath}/read.json`, JSON.stringify(json, null, 2), (err) => {
         if (err) throw err;
         res.json({ message: 'Date updated successfully!' });
+        return;
       });
     }
     res.json({message: 'Date was already read!'});
+    return;
   });
 });
 
