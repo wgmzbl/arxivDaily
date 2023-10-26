@@ -99,7 +99,7 @@ app.post('/update-date', (req, res) => {
   }
 
   fs.readFile(`${datapath}/read.json`, (err, data) => {
-    if (err) throw err;
+    if (err) res.json({ message: 'Invalid request!' });
     const json = JSON.parse(data);
     if (category in json && yymmdd in json[category] && json[category][yymmdd] == false) {
       json[category][yymmdd] = true;
@@ -108,6 +108,7 @@ app.post('/update-date', (req, res) => {
         res.json({ message: 'Date updated successfully!' });
       });
     }
+    res.json({message: 'Date was already read!'});
   });
 });
 
