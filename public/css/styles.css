@@ -248,12 +248,14 @@ body {
 }
 
 .menu-toggle {
+    top: 10px;
+    left: 10px;
     background-color: transparent;
     border: none;
     cursor: pointer;
     padding: 10px;
     display: none; /* Initially hidden for larger screens */
-    position: relative;
+    position: fixed;
     z-index: 10001; /* Ensure it stays above the menu */
 }
 

@@ -70,13 +70,18 @@ def get_new_arxiv_entries(category):
             }
         })
     update_date = time.strftime('%y%m%d', feed.updated_parsed)
-    print(update_date)
-    print(entries)
     return entries, update_date
+
+def check_if_empty(path_json):
+    with open(path_json, 'r', encoding='utf-8') as f:
+        entries = json.load(f)
+    if entries['New']==[] and entries['Update']==[]:
+        return True
+    return False
 
 def save_to_json(entries, update_date,category):
     # 确保entries 非空。
-    if entries['New'] is None and entries['Update'] is None:
+    if entries['New'] == [] and entries['Update']==[]:
         print("No articles!")
         return
     # 确保当前目录下的data目录存在
@@ -113,7 +118,7 @@ def main():
         filename = f'{config["datapath"]}/{category}/{update_date}.json'
         if not os.path.exists(f'{config["datapath"]}/{category}'):
             os.makedirs(f'{config["datapath"]}/{category}')
-        if not os.path.exists(filename):
+        if not os.path.exists(filename) or check_if_empty(filename):
             entries, update_date = get_new_arxiv_entries(category)
             save_to_json(entries, update_date, category)
         else:
