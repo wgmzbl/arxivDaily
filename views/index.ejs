@@ -48,12 +48,19 @@
 </head>
 
 <body>
-  <div><button class="menu-toggle">
-    <div class="bar"></div>
-    <div class="bar"></div>
-    <div class="bar"></div>
-</button></div>
-  <div id="category"></div>
+  <div class="header">
+    <div id="category"></div>
+    <div class="menu-toggle">
+      <button class="menu-toggle">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+      </button></div>
+    <div class="header-title">
+      Daily <%= category %>
+    </div>
+    <button id="settingsBtn" class="settings-icon"><i class="fas fa-cog"></i></button>
+  </div>
   <div id="settingsMenu" class="hidden">
     <label>
       <input class="toggleCheckbox" type="checkbox" checked id="toggleCalendar">
@@ -86,7 +93,6 @@
       Show summary
     </label>
   </div>
-  <button id="settingsBtn" class="settings-icon"><i class="fas fa-cog"></i></button>
   <div id="datePicker" , class="calendar"></div>
   <div id="content"></div>
 
@@ -210,7 +216,7 @@
 
           ['New', 'Update'].forEach(
             strs => {
-              contentDiv.append(`<h2>${strs}</h2>`);
+              contentDiv.append(`<div class="title-type">${strs}</div>`);
               data[strs].forEach(entry => {
                 const entryDiv = $(`<div class="entry"></div>`);
                 entryDiv.append(`<div class="entry-title">${entry.Title}</div>`);
@@ -390,7 +396,7 @@
     const menuToggle = document.querySelector('.menu-toggle');
 
     menuToggle.addEventListener('click', function() {
-    const menu = document.querySelector('.menu');
+      const menu = document.getElementById('category');
       if (menu.style.display === 'none' || menu.style.display === '') {
         menu.style.display = 'block';
       } else {
