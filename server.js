@@ -70,7 +70,7 @@ function checkIfLogin(req) {
 function checkLogin(req, res, next) {
   if (checkIfLogin(req)) {
     res.locals.loggedIn = true;
-    res.locals.user = req.session.user; 
+    res.locals.user = req.session.user;
   } else {
     res.locals.loggedIn = false;
   }
@@ -99,7 +99,10 @@ app.post('/update-date', (req, res) => {
   }
 
   fs.readFile(`${datapath}/read.json`, (err, data) => {
-    if (err) res.json({ message: 'Invalid request!' });
+    if (err) {
+      res.json({ message: 'Invalid request!' });
+      return;
+    }
     const json = JSON.parse(data);
     if (category in json && yymmdd in json[category] && json[category][yymmdd] == false) {
       json[category][yymmdd] = true;
@@ -109,7 +112,9 @@ app.post('/update-date', (req, res) => {
         return;
       });
     }
-    res.json({message: 'Date was already read!'});
+    else {
+      res.json({ message: 'Date was already read!' });
+    }
     return;
   });
 });
@@ -202,62 +207,62 @@ app.post('/download', checkLogin, (req, res) => {
       }
     });
   }
-console.log('url: ' + url);
+  console.log('url: ' + url);
 
-fs.readFile(`${datapath}/${type}.json`, 'utf8', (err, data) => {
-  let obj = {}
-  if (err) {
-    obj = {};
-    console.log('read type.json error');
-  }
-  else {
-    try {
-      obj = JSON.parse(data);
-    }
-    catch (err) {
-      console.log('invalid json');
+  fs.readFile(`${datapath}/${type}.json`, 'utf8', (err, data) => {
+    let obj = {}
+    if (err) {
       obj = {};
+      console.log('read type.json error');
     }
-  }
-
-  if (!obj.hasOwnProperty(id)) {
-    obj[id] = {};
-    obj[id]['title'] = titlepaper;
-    obj[id]['authors'] = authors;
-    obj[id]['summary'] = summary;
-    obj[id]['url'] = url;
-    obj[id]['comments'] = comments;
-    obj[id]['subjects'] = subjects;
-
-    authorlist = authors.split(', ');
-    authorstr = "";
-    authorlist.forEach(author => {
-      authorname = author.split(' ');
-      authorstr += authorname[authorname.length - 1] + ", ";
-    });
-    authorstr = authorstr.slice(0, -2);
-    console.log('Fetching pdf...');
-    fetch(url).then(response => {
-      if (response.ok) {
-        return response.buffer();
+    else {
+      try {
+        obj = JSON.parse(data);
       }
-    })
-      .then(buffer => {
-        const fileName = `${authorstr}-${id.slice(0, 2)}-${titlepaper.replace(/[\.\$\\/:*?"<>|]/g, '')}.pdf`;
-        console.log('Write to file ' +fileName);
-        fs.writeFileSync(`${datapath}/${type}/${fileName}`, buffer);
+      catch (err) {
+        console.log('invalid json');
+        obj = {};
+      }
+    }
+
+    if (!obj.hasOwnProperty(id)) {
+      obj[id] = {};
+      obj[id]['title'] = titlepaper;
+      obj[id]['authors'] = authors;
+      obj[id]['summary'] = summary;
+      obj[id]['url'] = url;
+      obj[id]['comments'] = comments;
+      obj[id]['subjects'] = subjects;
+
+      authorlist = authors.split(', ');
+      authorstr = "";
+      authorlist.forEach(author => {
+        authorname = author.split(' ');
+        authorstr += authorname[authorname.length - 1] + ", ";
+      });
+      authorstr = authorstr.slice(0, -2);
+      console.log('Fetching pdf...');
+      fetch(url).then(response => {
+        if (response.ok) {
+          return response.buffer();
+        }
+      })
+        .then(buffer => {
+          const fileName = `${authorstr}-${id.slice(0, 2)}-${titlepaper.replace(/[\.\$\\/:*?"<>|]/g, '')}.pdf`;
+          console.log('Write to file ' + fileName);
+          fs.writeFileSync(`${datapath}/${type}/${fileName}`, buffer);
+        });
+
+      let jsonStr = JSON.stringify(obj, null, 2);
+      fs.writeFile(`${datapath}/${type}.json`, jsonStr, (err) => {
+        if (err) throw err;
       });
 
-    let jsonStr = JSON.stringify(obj, null, 2);
-    fs.writeFile(`${datapath}/${type}.json`, jsonStr, (err) => {
-      if (err) throw err;
-    });
-
-    const mdContent = `### **${titlepaper}**\n**${authors}**\n- [PDF Link](${url})\n - Category: ${category}\n - Arxiv ID: ${id}\n - Comments: ${comments}\n - Abstract: ${summary}\n\n`;
-    fs.appendFile(`${datapath}/${type}.md`, mdContent, (err) => { console.log(`write to ${datapath}/${type}.md`);  });
-  }
-});
-res.json({ message: 'Finished' });
+      const mdContent = `### **${titlepaper}**\n**${authors}**\n- [PDF Link](${url})\n - Category: ${category}\n - Arxiv ID: ${id}\n - Comments: ${comments}\n - Abstract: ${summary}\n\n`;
+      fs.appendFile(`${datapath}/${type}.md`, mdContent, (err) => { console.log(`write to ${datapath}/${type}.md`); });
+    }
+  });
+  res.json({ message: 'Finished' });
 });
 
 
