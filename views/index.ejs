@@ -17,8 +17,6 @@
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       renderMathInElement(document.body, {
-        // customised options
-        // • auto-render specific keys, e.g.:
         delimiters: [{
             left: '$$',
             right: '$$',
@@ -55,7 +53,8 @@
         <div class="bar"></div>
         <div class="bar"></div>
         <div class="bar"></div>
-      </button></div>
+      </button>
+    </div>
     <div class="header-title">
       Daily <%= category %>
     </div>
@@ -92,6 +91,9 @@
       <span class="slider"></span> <!-- This is the toggle switch -->
       Show summary
     </label>
+    <div class="settings-menu-footer">
+      <a class="transparent-link" href="/login">Logout</a>
+    </div>
   </div>
   <div id="datePicker" , class="calendar"></div>
   <div id="content"></div>
@@ -113,11 +115,10 @@
           console.log(closestDate)
           $('#datePicker').datepicker({
             beforeShow: function(input, inst) {
-              // 在日期选择器弹出之前修改日期单元格内容
               $('td a', inst.dpDiv).each(function() {
-                const text = $(this).text(); // 获取a标签内的文本
+                const text = $(this).text();
                 console.log(text);
-                $(this).parent('td').text(text); // 用文本替换a标签所在的td
+                $(this).parent('td').text(text);
               });
             },
             beforeShowDay: function(date) {
@@ -248,32 +249,7 @@
                 contentDiv.append(entryDiv);
                 triggerAllCheckboxes();
                 contentDiv.data('entry', entry); // Store the entry data for later use
-                renderMathInElement(document.body, {
-                  // customised options
-                  // • auto-render specific keys, e.g.:
-                  delimiters: [{
-                      left: '$$',
-                      right: '$$',
-                      display: true
-                    },
-                    {
-                      left: '$',
-                      right: '$',
-                      display: false
-                    },
-                    {
-                      left: '\\(',
-                      right: '\\)',
-                      display: false
-                    },
-                    {
-                      left: '\\[',
-                      right: '\\]',
-                      display: true
-                    }
-                  ],
-                  throwOnError: false
-                });
+                document.dispatchEvent(new Event('DOMContentLoaded'));
               });
             }
           )
@@ -328,30 +304,6 @@
     };
     <% } %>
 
-    function renderLatex(text) {
-      // 处理双美元符号$$...$$
-      const doubleDollarRegex = /\$\$(.*?)\$\$/g;
-      text = text.replace(doubleDollarRegex, (match, p1) => {
-        const rendered = katex.renderToString(p1, {
-          displayMode: true, // 这表示是显示模式
-          throwOnError: false
-        });
-        return rendered;
-      });
-
-      // 处理单美元符号$...$
-      const singleDollarRegex = /\$(.*?)\$/g;
-      text = text.replace(singleDollarRegex, (match, p1) => {
-        const rendered = katex.renderToString(p1, {
-          displayMode: false, // 这表示是内联模式
-          throwOnError: false
-        });
-        return rendered;
-      });
-
-      return text;
-    }
-
     function lowercaseFirstLetter(str) {
       return str.charAt(0).toLowerCase() + str.slice(1);
     }
@@ -362,14 +314,13 @@
     });
 
     // Array of all settings checkboxes
-
     const settingsCheckboxes = ['toggleCalendar', 'toggleAuthors', 'toggleComments', 'toggleSubjects', 'toggleSubmitTime', 'toggleSummary'];
 
     settingsCheckboxes.forEach(function(checkboxId) {
       const checkbox = document.getElementById(checkboxId);
       const contentId = lowercaseFirstLetter(checkboxId.replace('toggle', ''));
       console.log(contentId);
-      let contents = document.querySelectorAll(`.${contentId}`); // Get all elements with 'content-class' class
+      let contents = document.querySelectorAll(`.${contentId}`);
 
       // Apply stored settings
       if (localStorage.getItem(checkboxId) === 'true') {
@@ -380,11 +331,10 @@
         contents.forEach(content => content.classList.add('hidden'));
       }
 
-      // Update content visibility and store settings when changed
       console.log(checkboxId);
       console.log(checkbox);
       checkbox.addEventListener('change', function() {
-        let contents = document.querySelectorAll(`.${contentId}`); // Get all elements with 'content-class' class
+        let contents = document.querySelectorAll(`.${contentId}`);
         if (this.checked) {
           contents.forEach(content => content.classList.remove('hidden'));
         } else {
