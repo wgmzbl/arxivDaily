@@ -242,15 +242,19 @@ app.post('/download', checkLogin, (req, res) => {
       });
       authorstr = authorstr.slice(0, -2);
       console.log('Fetching pdf...');
-      fetch(url).then(response => {
-        if (response.ok) {
-          return response.buffer();
-        }
-      })
+      fetch(url)
+        .then(response => {
+          if (response.ok) {
+            return response.buffer();
+          }
+        })
         .then(buffer => {
           const fileName = `${authorstr}-${id.slice(0, 2)}-${titlepaper.replace(/[\.\$\\/:*?"<>|]/g, '')}.pdf`;
           console.log('Write to file ' + fileName);
           fs.writeFileSync(`${datapath}/${type}/${fileName}`, buffer);
+        })
+        .catch(err => {
+          console.error("There was an error when fetching pdf", err);
         });
 
       let jsonStr = JSON.stringify(obj, null, 2);
