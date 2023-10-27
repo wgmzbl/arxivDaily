@@ -202,8 +202,9 @@ app.post('/download', checkLogin, (req, res) => {
         titlepaper = entry['Title'];
         authors = entry['Authors'] ? entry['Authors'] : "";
         summary = entry['Summary'] ? entry['Summary'] : "";
-        comments = entry['Comments'] ? entry['Comments'] : "";
-        subjects = entry['Subjects'] ? entry['Subjects'] : {};
+        comments = entry['arxiv_comments'] ? entry['arxiv_comments'] : "";
+        subjects = entry['subject'] ? entry['subject'] : {};
+        submitTime = entry['SubmitTime'] ? entry['SubmitTime'] : "";
       }
     });
   }
@@ -233,6 +234,7 @@ app.post('/download', checkLogin, (req, res) => {
       obj[id]['url'] = url;
       obj[id]['comments'] = comments;
       obj[id]['subjects'] = subjects;
+      obj[id]['submitTime'] = submitTime;
 
       authorlist = authors.split(', ');
       authorstr = "";
@@ -262,7 +264,7 @@ app.post('/download', checkLogin, (req, res) => {
         if (err) throw err;
       });
 
-      const mdContent = `### **${titlepaper}**\n**${authors}**\n- [PDF Link](${url})\n - Category: ${category}\n - Arxiv ID: ${id}\n - Comments: ${comments}\n - Abstract: ${summary}\n\n`;
+      const mdContent = `### **${titlepaper}**\n**${authors}**\n- [PDF Link](${url})\n - Category: ${category}\n- Arxiv ID: ${id}\n- Comments: ${comments}\n- submit time: ${submitTime}\n-  Abstract: ${summary}\n\n`;
       fs.appendFile(`${datapath}/${type}.md`, mdContent, (err) => { console.log(`write to ${datapath}/${type}.md`); });
     }
   });
