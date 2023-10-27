@@ -232,7 +232,7 @@
                   }
                   if (entry.subject.other_subjects) {
                     entry.subject.other_subjects.forEach(subject => {
-                      contentP.append(`<span class="secondaryCategory">${subject}</span>`);
+                      contentP.append(`${subject}`);
                     });
                   }
                   entryDiv.append(contentP);

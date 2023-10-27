@@ -63,7 +63,6 @@ passport.deserializeUser((username, done) => {
 });
 
 function checkIfLogin(req) {
-  console.log('check login.');
   return req.session && req.session.passport && req.session.passport.user;
 }
 

@@ -7,6 +7,7 @@ import requests
 from xml.etree import ElementTree
 
 def get_arxiv_details(arxiv_id):
+    time.sleep(1)
     url = f'http://export.arxiv.org/api/query?id_list={arxiv_id}'
     response = requests.get(url)
     tree = ElementTree.fromstring(response.content)
@@ -39,8 +40,6 @@ config = load_config(config_path)
 def get_new_arxiv_entries(category):
     url = f'http://arxiv.org/rss/{category}'
     feed = feedparser.parse(url)
-    # with open(f'test.json', 'w', encoding='utf-8') as f:
-        # json.dump(feed, f, ensure_ascii=False, indent=2)
     entries = {
             "New":[],
             "Update":[]
@@ -114,7 +113,12 @@ def main():
     for category in categories:
         url = f'http://arxiv.org/rss/{category}'
         feed = feedparser.parse(url)
-        update_date = time.strftime('%y%m%d', feed.updated_parsed)
+        try:
+            update_date = time.strftime('%y%m%d', feed.updated_parsed)
+        except:
+            print(feed)
+            print(f'Failed to get update date for {category}. URL: {url}')
+            continue
         filename = f'{config["datapath"]}/{category}/{update_date}.json'
         if not os.path.exists(f'{config["datapath"]}/{category}'):
             os.makedirs(f'{config["datapath"]}/{category}')
@@ -123,6 +127,7 @@ def main():
             save_to_json(entries, update_date, category)
         else:
             print(f'The file {filename} already exists. No action was taken.')
+        time.sleep(1)
 
 if __name__ == '__main__':
     main()
