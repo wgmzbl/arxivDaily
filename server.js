@@ -169,6 +169,12 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function ensureDirectoryExistsSync(dirPath) {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+}
+
 function fetchWithRetry(url, retries = 3, delay = 2000) {
   const attemptFetch = (retryCount) => {
     return fetch(url)
@@ -269,11 +275,12 @@ app.post('/download', checkLogin, (req, res) => {
       });
       authorstr = authorstr.slice(0, -2);
       console.log('Fetching pdf...');
-      fetchWithRetry('url-to-download', 3, 2000)
+      fetchWithRetry(url, 3, 2000)
         .then(content => {
           console.log('下载成功，处理内容...');
           const fileName = `${authorstr}-${id.slice(0, 2)}-${titlepaper.replace(/[\.\$\\/:*?"<>|]/g, '')}.pdf`;
           console.log('Write to file ' + fileName);
+          ensureDirectoryExistsSync(`${datapath}/${type}`);
           fs.writeFileSync(`${datapath}/${type}/${fileName}`, content);
         })
         .then(() => {
