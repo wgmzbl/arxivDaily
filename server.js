@@ -165,6 +165,32 @@ app.get('/closedAvaliableData/:category/:data', (req, res) => {
   });
 });
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function fetchWithRetry(url, retries = 3, delay = 2000) {
+  const attemptFetch = (retryCount) => {
+    return fetch(url)
+      .then(response => {
+        if (!response.ok) throw new Error(`Attempt ${retryCount}: Server responded with status ${response.status}`);
+        return response;
+      })
+      .then(response => {
+        return response.buffer();
+      }
+      )
+      .catch(error => {
+        console.error(error);
+        if (retryCount > 1) {
+          return sleep(delay).then(() => attemptFetch(retryCount - 1));
+        }
+        throw error;
+      });
+  };
+  return attemptFetch(retries);
+}
+
 app.post('/download', checkLogin, (req, res) => {
   if (!checkIfLogin(req)) {
     return res.json({ error: 'Not logged in' });
@@ -243,19 +269,18 @@ app.post('/download', checkLogin, (req, res) => {
       });
       authorstr = authorstr.slice(0, -2);
       console.log('Fetching pdf...');
-      fetch(url)
-        .then(response => {
-          if (response.ok) {
-            return response.buffer();
-          }
-        })
-        .then(buffer => {
+      fetchWithRetry('url-to-download', 3, 2000)
+        .then(content => {
+          console.log('下载成功，处理内容...');
           const fileName = `${authorstr}-${id.slice(0, 2)}-${titlepaper.replace(/[\.\$\\/:*?"<>|]/g, '')}.pdf`;
           console.log('Write to file ' + fileName);
-          fs.writeFileSync(`${datapath}/${type}/${fileName}`, buffer);
+          fs.writeFileSync(`${datapath}/${type}/${fileName}`, content);
         })
-        .catch(err => {
-          console.error("There was an error when fetching pdf", err);
+        .then(() => {
+          console.log('处理完毕');
+        })
+        .catch(error => {
+          console.error('下载失败:', error);
         });
 
       let jsonStr = JSON.stringify(obj, null, 2);
