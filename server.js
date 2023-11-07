@@ -120,7 +120,7 @@ app.post('/update-date', (req, res) => {
 
 app.get('/categories', (req, res) => {
   // Get all categories
-  res.json({ categories: config.categories });
+  res.json({ categories: config.categories, categoriesStr: config.categoriesStr });
 });
 
 app.get('/read/:category', (req, res) => {

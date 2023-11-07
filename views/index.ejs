@@ -18,6 +18,8 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.js"
     integrity="sha384-ImWHyYvDPlRzwFnvLhG9Jcpm/7qL4SVIuJK0C6Rj+Mf7fpeNJCLCynC+EVz4kCSA"
     crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.10.2/Sortable.min.js"></script>
+
   <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="/css/styles.css">
@@ -54,13 +56,21 @@
 
 <body>
   <div class="header">
-    <div id="category"></div>
-    <div class="menu-toggle">
-      <button class="menu-toggle">
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-      </button>
+    <div id="menuWithHidden">
+      <div id="category"></div>
+      <div id="hiddenMenuDiv">
+        <p>Hidden Menu</p>
+        <ul id="hiddenMenu" class="menu">
+        </ul>
+      </div>
+
+      <div class="menu-toggle">
+        <button class="menu-toggle">
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+        </button>
+      </div>
     </div>
     <div class="header-title">
       Daily <%= category %>
@@ -98,10 +108,15 @@
       <span class="slider"></span> <!-- This is the toggle switch -->
       Show summary
     </label>
+    <label>
+      <button id="edit-btn" class="mobile-button">Edit Menu</button>
+      <button id="complete-btn" style="display:none;" class="mobile-button">Complete</button>
+    </label>
     <div class="settings-menu-footer">
       <a class="transparent-link" href="/login">Login</a>
     </div>
   </div>
+
   <div id="datePicker" , class="calendar"></div>
   <div id="content"></div>
 
@@ -162,22 +177,106 @@
         });
     });
 
+    function setDragMenu() {
+      var menuShow = document.getElementById('menu');
+      var sortableMenu = new Sortable(menuShow, {
+        group: 'shared',
+        disabled: true,
+        animation: 150,
+        store: {
+          set: function (sortable) {
+            var order = sortable.toArray();
+            localStorage.setItem('menu', JSON.stringify(order));
+          },
+          get: function () {
+            return JSON.parse(localStorage.getItem('menu') || '[]');
+          }
+        }
+      });
+
+      var menuHidden = document.getElementById('hiddenMenu');
+      var hiddenMenu = new Sortable(menuHidden, {
+        group: 'shared',
+        disabled: true,
+        animation: 150,
+        store: {
+          set: function (sortable) {
+            var order = sortable.toArray();
+            localStorage.setItem('hiddenMenu', JSON.stringify(order));
+          },
+          get: function () {
+            return JSON.parse(localStorage.getItem('hiddenMenu') || '[]');
+          }
+        }
+      });
+
+      const editBtn = document.getElementById('edit-btn');
+      const completeBtn = document.getElementById('complete-btn');
+      editBtn.addEventListener('click', function () {
+        sortableMenu.option('disabled', false);
+        hiddenMenu.option('disabled', false);
+        editBtn.style.display = 'none';
+        document.getElementById('hiddenMenuDiv').style.display = 'inline';
+        completeBtn.style.display = 'inline';
+        document.getElementById('hiddenMenu').style.flexWrap = 'wrap';
+        document.getElementById('menu').style.flexWrap = 'wrap';
+        document.getElementById('settingsMenu').classList.toggle('hidden');
+        var menuItems = document.querySelectorAll('.menu li');
+        menuItems.forEach(function (item) {
+          item.classList.add('margin-bottom');
+        });
+      });
+
+      completeBtn.addEventListener('click', function () {
+        sortableMenu.option('disabled', true);
+        hiddenMenu.option('disabled', true);
+        editBtn.style.display = 'inline';
+        document.getElementById('hiddenMenuDiv').style.display = 'none';
+        completeBtn.style.display = 'none';
+        document.getElementById('menu').style.flexWrap = 'nowrap';
+        document.getElementById('settingsMenu').classList.toggle('hidden');
+        var menuItems = document.querySelectorAll('.menu li');
+        menuItems.forEach(function (item) {
+          item.classList.remove('margin-bottom');
+        });
+      });
+    }
     function showMenu() {
       fetch('/categories')
         .then(response => response.json())
-        .then(categories => {
+        .then(result => {
           const contentDiv = $('#category');
-          const contentMenu = $(`<ul class="menu"></ul>`);
+          const contentMenu = $(`<ul class="menu" id='menu'></ul>`);
           contentDiv.empty();
-          console.log(categories);
-          if ("categories" in categories) {
-            categories["categories"].forEach(category => {
-              contentMenu.append(`<li class="${('<%=category%>' === category) ? 'active' : ''}"><a href="/${category}">${category}</a></li>`);
+          if ("categories" in result) {
+            result["categories"].forEach(category => {
+              innerText = category;
+              if("categoriesStr" in result && category in result["categoriesStr"]){
+                innerText = `${result["categoriesStr"][category]}`;
+              }
+              contentMenu.append(`<li class="${('<%=category%>' === category) ? 'active' : ''}" id="item-${category}" data-id="${category}"><a class="single-line" href="/${category}">${innerText}</a></li>`);
             });
           }
           contentDiv.append(contentMenu);
           preventscroll();
+          adjustMenuFromLocalStroage();
+          setDragMenu();
         });
+    }
+    function adjustMenuFromLocalStroage() {
+      ['menu', 'hiddenMenu'].forEach(function (key, index) {
+        var order = localStorage.getItem(key);
+        if (order) {
+          order = JSON.parse(order);
+          var menu = document.getElementById(key);
+          order.forEach(function (id) {
+            var element = document.getElementById(`item-${id}`);
+            if (element) {
+              menu.appendChild(element);
+            }
+          });
+        }
+      });
     }
 
     function findClosestDate(targetDate, availableDates) {

@@ -9,6 +9,47 @@ body {
     font-weight: bold;
 }
 
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+.margin-bottom {
+    margin-bottom: 10px;
+    animation: bounce 0.5s ease infinite;
+}
+
+a.single-line {
+    white-space: nowrap;
+}
+
+#menuWithHidden {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 768px) {
+    #menuWithHidden {
+        width: 80%;
+    }
+}
+@media (max-width: 768px) {
+    #edit-btn{
+        display: none;
+    }
+}
+
+#hiddenMenuDiv {
+    padding: 5px;
+    border-radius: 5px;
+    border: 2px solid red;
+    display: none;
+}
+
 .title-type {
     font-size: 1.5em;
     margin: 40px auto 10px auto;
@@ -26,6 +67,7 @@ body {
     z-index: 999;
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
 }
 
 .header-title {
@@ -248,15 +290,17 @@ body {
     display: flex;
     padding: 0;
     margin: auto 0px;
-    width: 80%;
+    width: 100%;
     background-color: #fff;
     overflow-x: scroll;
-    scrollbar-width: none;/* Firefox */
+    scrollbar-width: none;
+    /* Firefox */
 }
 
-.menu::-webkit-scrollbar { /* Chrome, Safari 和 Opera */
+.menu::-webkit-scrollbar {
+    /* Chrome, Safari 和 Opera */
     display: none;
-  }
+}
 
 .menu li {
     padding: 8px 12px;
@@ -328,7 +372,7 @@ body {
     #category {
         display: none;
         position: absolute;
-        width: 50%;
+        width: 70%;
     }
 
     .menu-item {
