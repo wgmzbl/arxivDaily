@@ -1,2 +1,2 @@
 # arxivDaily
-Fetching arxiv daily and save to local
+Fetching arxiv daily and save to server.

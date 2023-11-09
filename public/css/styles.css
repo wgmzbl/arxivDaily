@@ -3,6 +3,41 @@ body {
     padding: 20px;
 }
 
+.draggable {
+    position: fixed;
+    bottom: 50px;
+    right: 20px;
+    width: 50px;
+    /* 按钮宽度 */
+    height: 50px;
+    /* 按钮高度 */
+    border-radius: 50%;
+    /* 圆形 */
+    cursor: pointer;
+    z-index: 1000;
+    transition: opacity 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.2;
+    font-size: 30px;
+}
+
+.draggable:hover{
+    opacity: 0.8;
+}
+
+.active {
+    opacity: 1;
+}
+@media (max-width: 768px) {
+    .draggable {
+        bottom: 10px;
+        right: 0px;
+    }
+    
+}
+
 .title-type {
     font-size: 1.8em;
     text-align: center;
@@ -11,13 +46,17 @@ body {
 
 
 @keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(3px);
-  }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(3px);
+    }
 }
+
 .margin-bottom {
     margin-bottom: 10px;
     animation: bounce 0.5s ease infinite;
@@ -37,8 +76,9 @@ a.single-line {
         width: 80%;
     }
 }
+
 @media (max-width: 768px) {
-    #edit-btn{
+    #edit-btn {
         display: none;
     }
 }
@@ -183,7 +223,7 @@ a.single-line {
     border: 1px solid #ccc;
     border-radius: 5px;
     padding: 10px;
-    margin: 40px auto 10px auto;
+    margin: 55px auto 10px auto;
     font-family: 'Arial', sans-serif;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
 }
@@ -336,7 +376,7 @@ a.single-line {
     background-color: transparent;
     border: none;
     cursor: pointer;
-    padding: 10px;
+    padding: 5px;
     display: none;
     z-index: 10001;
 }
@@ -417,6 +457,8 @@ a.single-line {
     transition: color 0.3s;
     color: #333;
     z-index: 999;
+    width: 50px;
+    height: 50px;
 }
 
 #settingsBtn:hover {
