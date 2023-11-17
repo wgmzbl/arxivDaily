@@ -177,6 +177,7 @@ function ensureDirectoryExistsSync(dirPath) {
 
 function fetchWithRetry(url, retries = 3, delay = 2000) {
   const attemptFetch = (retryCount) => {
+    console.log('Attempt', retryCount, 'to fetch', url);
     return fetch(url)
       .then(response => {
         if (!response.ok) throw new Error(`Attempt ${retryCount}: Server responded with status ${response.status}`);
@@ -256,8 +257,22 @@ app.post('/download', checkLogin, (req, res) => {
         obj = {};
       }
     }
+    authorlist = authors.split(', ');
+    authorstr = "";
+    authorlist.forEach(author => {
+      authorname = author.split(' ');
+      authorstr += authorname[authorname.length - 1] + ", ";
+    });
+    authorstr = authorstr.slice(0, -2);
+    const fileName = `${authorstr}-${id.slice(0, 2)}-${titlepaper.replace(/[\.\$\\/:*?"<>|]/g, '')}.pdf`;
 
-    if (!obj.hasOwnProperty(id)) {
+    if (obj.hasOwnProperty(id)) {
+      if (fs.existsSync(`${datapath}/${type}/${fileName}`)) {
+        res.json({ message: "File exists" });
+        return;
+      }
+    }
+    else {
       obj[id] = {};
       obj[id]['title'] = titlepaper;
       obj[id]['authors'] = authors;
@@ -267,28 +282,8 @@ app.post('/download', checkLogin, (req, res) => {
       obj[id]['subjects'] = subjects;
       obj[id]['submitTime'] = submitTime;
 
-      authorlist = authors.split(', ');
-      authorstr = "";
-      authorlist.forEach(author => {
-        authorname = author.split(' ');
-        authorstr += authorname[authorname.length - 1] + ", ";
-      });
-      authorstr = authorstr.slice(0, -2);
+
       console.log('Fetching pdf...');
-      fetchWithRetry(url, 3, 2000)
-        .then(content => {
-          console.log('下载成功，处理内容...');
-          const fileName = `${authorstr}-${id.slice(0, 2)}-${titlepaper.replace(/[\.\$\\/:*?"<>|]/g, '')}.pdf`;
-          console.log('Write to file ' + fileName);
-          ensureDirectoryExistsSync(`${datapath}/${type}`);
-          fs.writeFileSync(`${datapath}/${type}/${fileName}`, content);
-        })
-        .then(() => {
-          console.log('处理完毕');
-        })
-        .catch(error => {
-          console.error('下载失败:', error);
-        });
 
       let jsonStr = JSON.stringify(obj, null, 2);
       fs.writeFile(`${datapath}/${type}.json`, jsonStr, (err) => {
@@ -298,8 +293,25 @@ app.post('/download', checkLogin, (req, res) => {
       const mdContent = `### **${titlepaper}**\n**${authors}**\n- [PDF Link](${url})\n - Category: ${category}\n- Arxiv ID: ${id}\n- Comments: ${comments}\n- submit time: ${submitTime}\n-  Abstract: ${summary}\n\n`;
       fs.appendFile(`${datapath}/${type}.md`, mdContent, (err) => { console.log(`write to ${datapath}/${type}.md`); });
     }
+
+    fetchWithRetry(url, 3, 2000)
+      .then(content => {
+        console.log('下载成功，处理内容...');
+
+        console.log('Write to file ' + fileName);
+        ensureDirectoryExistsSync(`${datapath}/${type}`);
+        fs.writeFileSync(`${datapath}/${type}/${fileName}`, content);
+
+      })
+      .then(() => {
+        console.log('处理完毕');
+        res.json({ message: "Success" });
+      })
+      .catch(error => {
+        console.error('下载失败:', error);
+        res.json({ message: "Fail" });
+      });
   });
-  res.json({ message: 'Finished' });
 });
 
 

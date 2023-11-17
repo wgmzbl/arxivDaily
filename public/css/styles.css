@@ -14,7 +14,7 @@ body {
     border-radius: 50%;
     /* 圆形 */
     cursor: pointer;
-    z-index: 1000;
+    z-index: 999;
     transition: opacity 0.3s;
     display: flex;
     align-items: center;
@@ -176,7 +176,7 @@ a.single-line {
 
 .mobile-button {
     display: inline-block;
-    padding: 12px 24px;
+    padding: 8px 15px;
     font-size: 16px;
     text-align: center;
     text-decoration: none;
@@ -388,7 +388,7 @@ a.single-line {
     }
 
     .header {
-        padding: 20px 20px 10px 20px;
+        padding: 10px 20px 10px 20px;
     }
 }
 
@@ -398,11 +398,11 @@ a.single-line {
         flex-direction: column;
         position: absolute;
         width: 100%;
-        top: 60px;
+        top: 45px;
         left: 0;
         z-index: 1000;
         overflow-y: scroll;
-        height: 200px;
+        height: 80vh;
     }
 
     .header-title {
@@ -476,6 +476,7 @@ a.single-line {
     border-radius: 12px;
     width: 250px;
     z-index: 1000;
+    display: none;
 }
 
 #settingsMenu label {

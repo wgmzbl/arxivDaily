@@ -7,21 +7,14 @@
   <title>Arxiv Viewer</title>
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-  <link rel="stylesheet" href="https://www.unpkg.com/katex@0.16.9/dist/katex.min.css"
-    integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
-  <script defer src="https://www.unpkg.com/katex@0.16.9/dist/katex.min.js"
-    integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
-    crossorigin="anonymous"></script>
-  <script defer src="https://www.unpkg.com/katex@0.16.9/dist/contrib/auto-render.min.js"
-    integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
-    onload="renderMathInElement(document.body);"></script>
-  <script defer src="https://www.unpkg.com/katex@0.16.9/dist/katex.js"
-    integrity="sha384-ImWHyYvDPlRzwFnvLhG9Jcpm/7qL4SVIuJK0C6Rj+Mf7fpeNJCLCynC+EVz4kCSA"
-    crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://www.unpkg.com/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+  <script defer src="https://www.unpkg.com/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+  <script defer src="https://www.unpkg.com/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
+  <script defer src="https://www.unpkg.com/katex@0.16.9/dist/katex.js" integrity="sha384-ImWHyYvDPlRzwFnvLhG9Jcpm/7qL4SVIuJK0C6Rj+Mf7fpeNJCLCynC+EVz4kCSA" crossorigin="anonymous"></script>
   <script src="https://www.unpkg.com/sortablejs@1.15.0/Sortable.min.js"></script>
 
   <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.css">
   <link rel="stylesheet" href="/css/styles.css">
 
 </head>
@@ -47,9 +40,9 @@
     <div class="header-title">
       Daily <%= category %>
     </div>
-    <button id="settingsBtn" class="settings-icon"><i class="fas fa-cog"></i></button>
+    <button id="settingsBtn" class="settings-icon"><i class="fa fa-cog"></i></button>
   </div>
-  <div id="settingsMenu" class="hidden">
+  <div id="settingsMenu">
     <label>
       <input class="toggleCheckbox" type="checkbox" checked id="toggleCalendar">
       <span class="slider"></span> <!-- This is the toggle switch -->
@@ -98,10 +91,9 @@
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script>
-    $(document).ready(function () {
-      fetch('/read/<%= category %>')
-        .then(response => response.json())
-        .then(readData => {
+    $(document).ready(function() {
+      $.get('/read/<%= category %>')
+        .done(function(readData) {
           if ("message" in readData) {
             console.log(readData.message);
             return;
@@ -109,150 +101,139 @@
           const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
           const availableDates = Object.keys(readData);
           const closestDate = findClosestDate(today, availableDates);
-          console.log(closestDate)
+
           $('#datePicker').datepicker({
-            beforeShow: function (input, inst) {
-              $('td a', inst.dpDiv).each(function () {
-                const text = $(this).text();
-                console.log(text);
-                $(this).parent('td').text(text);
+            beforeShow: function(input, inst) {
+              $('td a', inst.dpDiv).each(function() {
+                $(this).parent('td').text($(this).text());
               });
             },
-            beforeShowDay: function (date) {
-              const yymmdd = $.datepicker.formatDate('yymmdd', date).slice(2, 8);
+            beforeShowDay: function(date) {
+              const yymmdd = formatDateForComparison(date);
               if (availableDates.includes(yymmdd)) {
-                <% if (loggedIn) { %>
-                if (readData[yymmdd] === true) {
-                    return [true, 'highlightgrey ui-datepicker-day', 'Read'];
-                  } else if (readData[yymmdd] === false) {
-                    return [true, 'highlight ui-datepicker-day', 'Read'];
-                  }
-                <% } else { %>
-                return [true, 'highlightgrey ui-datepicker-day', 'Read'];
-                <% } %>
+                const highlightClass = `${<%= loggedIn %> ? (readData[yymmdd] ? "highlightgrey" : "highlight") : "highlightgrey"}`;
+                return [true, `${ highlightClass } ui-datepicker-day`, 'Read'];
               }
-              return [false, 'ui-datepicker-day', 'un'];
+              return [false, 'ui-datepicker-day', 'Unavailable'];
             },
-            onSelect: function (dateText, inst) {
-              // Parse the dateText to a Date object
-              const dateObj = new Date(dateText);
-              // Format the date to yymmdd
-              const yy = dateObj.getFullYear().toString().slice(2);
-              const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-              const dd = String(dateObj.getDate()).padStart(2, '0');
-              const formattedDate = yy + mm + dd;
-              console.log('<%= category %>');
+            onSelect: function(dateText) {
+              const formattedDate = formatDateForComparison(new Date(dateText));
               fetchData(formattedDate, '<%= category %>');
+
             }
           });
+
           showMenu();
-          console.log('setting date.' + closestDate);
           $("#datepicker").datepicker("setDate", formatDate(closestDate));
           fetchData(closestDate, '<%= category %>');
         });
+      settingMenu();
     });
 
+    function formatDateForComparison(date) {
+      const yy = date.getFullYear().toString().slice(2);
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      return yy + mm + dd;
+    }
+
     function setDragMenu() {
-      var menuShow = document.getElementById('menu');
+      var menuShow = $('#menu')[0];
       var sortableMenu = new Sortable(menuShow, {
         group: 'shared',
         disabled: true,
         animation: 150,
         store: {
-          set: function (sortable) {
+          set: function(sortable) {
             var order = sortable.toArray();
             localStorage.setItem('menu', JSON.stringify(order));
           },
-          get: function () {
+          get: function() {
             return JSON.parse(localStorage.getItem('menu') || '[]');
           }
         }
       });
 
-      var menuHidden = document.getElementById('hiddenMenu');
+      var menuHidden = $('#hiddenMenu')[0];
       var hiddenMenu = new Sortable(menuHidden, {
         group: 'shared',
         disabled: true,
         animation: 150,
         store: {
-          set: function (sortable) {
+          set: function(sortable) {
             var order = sortable.toArray();
             localStorage.setItem('hiddenMenu', JSON.stringify(order));
           },
-          get: function () {
+          get: function() {
             return JSON.parse(localStorage.getItem('hiddenMenu') || '[]');
           }
         }
       });
 
-      const editBtn = document.getElementById('edit-btn');
-      const completeBtn = document.getElementById('complete-btn');
-      editBtn.addEventListener('click', function () {
-        sortableMenu.option('disabled', false);
-        hiddenMenu.option('disabled', false);
-        editBtn.style.display = 'none';
-        document.getElementById('hiddenMenuDiv').style.display = 'inline';
-        completeBtn.style.display = 'inline';
-        document.getElementById('hiddenMenu').style.flexWrap = 'wrap';
-        document.getElementById('menu').style.flexWrap = 'wrap';
-        document.getElementById('settingsMenu').classList.toggle('hidden');
-        var menuItems = document.querySelectorAll('.menu li');
-        menuItems.forEach(function (item) {
-          item.classList.add('margin-bottom');
-        });
+      $('#edit-btn').on('click', function() {
+        toggleMenuState(sortableMenu, hiddenMenu, false, 'inline', 'wrap');
+        $('#settingsMenu').toggleClass('hidden');
+        $('.menu li').addClass('margin-bottom');
       });
 
-      completeBtn.addEventListener('click', function () {
-        sortableMenu.option('disabled', true);
-        hiddenMenu.option('disabled', true);
-        editBtn.style.display = 'inline';
-        document.getElementById('hiddenMenuDiv').style.display = 'none';
-        completeBtn.style.display = 'none';
-        document.getElementById('menu').style.flexWrap = 'nowrap';
-        document.getElementById('settingsMenu').classList.toggle('hidden');
-        var menuItems = document.querySelectorAll('.menu li');
-        menuItems.forEach(function (item) {
-          item.classList.remove('margin-bottom');
-        });
+      $('#complete-btn').on('click', function() {
+        toggleMenuState(sortableMenu, hiddenMenu, true, 'none', 'nowrap');
+        $('#settingsMenu').toggleClass('hidden');
+        $('.menu li').removeClass('margin-bottom');
       });
     }
+
+    function toggleMenuState(sortableMenu, hiddenMenu, isDisabled, hiddenMenuDisplay, flexWrapStyle) {
+      sortableMenu.option('disabled', isDisabled);
+      hiddenMenu.option('disabled', isDisabled);
+      $('#edit-btn').css('display', isDisabled ? 'inline' : 'none');
+      $('#hiddenMenuDiv').css('display', hiddenMenuDisplay);
+      $('#complete-btn').css('display', isDisabled ? 'none' : 'inline');
+      $('#hiddenMenu, #menu').css('flex-wrap', flexWrapStyle);
+    }
+
     function showMenu() {
-      fetch('/categories')
-        .then(response => response.json())
-        .then(result => {
+      $.get('/categories')
+        .done(function(result) {
           const contentDiv = $('#category');
-          const contentMenu = $(`<ul class="menu" id='menu'></ul>`);
+          const contentMenu = $('<ul class="menu" id="menu"></ul>');
           contentDiv.empty();
+
           if ("categories" in result) {
             result["categories"].forEach(category => {
-              innerText = category;
-              if ("categoriesStr" in result && category in result["categoriesStr"]) {
-                innerText = `${result["categoriesStr"][category]}`;
-              }
+              let innerText = "categoriesStr" in result && category in result["categoriesStr"] ?
+                result["categoriesStr"][category] :
+                category;
               contentMenu.append(`<li class="${('<%=category%>' === category) ? 'active' : ''}" id="item-${category}" data-id="${category}"><a class="single-line" href="/${category}">${innerText}</a></li>`);
             });
           }
+
           contentDiv.append(contentMenu);
           preventscroll();
-          adjustMenuFromLocalStroage();
+          adjustMenuFromLocalStorage();
           setDragMenu();
         });
     }
-    function adjustMenuFromLocalStroage() {
-      ['menu', 'hiddenMenu'].forEach(function (key, index) {
-        var order = localStorage.getItem(key);
+
+    function adjustMenuFromLocalStorage() {
+      ['menu', 'hiddenMenu'].forEach(function(key) {
+        const order = getLocalStorageItem(key);
         if (order) {
-          order = JSON.parse(order);
-          var menu = document.getElementById(key);
-          order.forEach(function (id) {
-            var element = document.getElementById(`item-${id}`);
-            if (element) {
-              menu.appendChild(element);
+          order.forEach(function(id) {
+            const item = $(`#item-${id}`.replace(/\./g, '\\.'));
+            if (item) {
+              $(`#${key}`).append(item);
             }
           });
         }
       });
     }
+
+    function getLocalStorageItem(key) {
+      const storedData = localStorage.getItem(key);
+      return storedData ? JSON.parse(storedData) : null;
+    }
+
 
     function findClosestDate(targetDate, availableDates) {
       let closestDate = availableDates[0];
@@ -268,78 +249,107 @@
     }
 
     function triggerAllCheckboxes() {
-      let checkboxes = document.querySelectorAll('.toggleCheckbox');
-      checkboxes.forEach(checkbox => {
-        checkbox.dispatchEvent(new Event('change', {
-          'bubbles': true
-        }));
+      $('.toggleCheckbox').each(function() {
+        $(this).trigger('change');
       });
     }
 
     function fetchData(date, category) {
       <% if (loggedIn) { %>
-        updateDate(date);
+      updateDate(date);
       <% } %>
-        console.log(category + ' ' + date);
-      fetch(`/${category}/${date}`)
-        .then(response => response.json())
-        .then(data => {
+      console.log(category + ' ' + date);
+      const contentDiv = $('#content');
+      contentDiv.empty().append('<div class="title-type"><i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i><div>');
+
+      $.get(`/${category}/${date}`)
+        .done(function(data) {
           console.log(data);
-          const contentDiv = $('#content');
           contentDiv.empty();
+
           if ('message' in data) {
-            if (data.message === 'No articles') {
-              contentDiv.append(`<p>${data.message}</p>`);
-              return;
-            } else {
-              contentDiv.append('<p>Invalid request</p>');
-              return;
-            }
+            contentDiv.append(`<p>${data.message === 'No articles' ? data.message : 'Invalid request'}</p>`);
+            return;
           }
 
-          ['New', 'Update'].forEach(
-            strs => {
-              contentDiv.append(`<div class="title-type">${strs}</div>`);
-              data[strs].forEach(entry => {
-                const entryDiv = $(`<div class="entry"></div>`);
-                entryDiv.append(`<div class="entry-title">${entry.Title}</div>`);
-                entryDiv.append(`<p class="entry-author authors">Authors: ${entry.Authors}</p>`);
-                if (entry['arxiv_comment']) {
-                  entryDiv.append(`<p class="entry-comments comments">Comments: ${entry['arxiv_comment']}</p>`);
-                }
-                if (entry.subject) {
-                  const contentP = $(`<p class="entry-subjects subjects">Subjects: </p>`);
-                  if (entry.subject.primary_subject) {
-                    contentP.append(`<span class="primaryCategory">${entry.subject.primary_subject}</span>`);
-                  }
-                  if (entry.subject.other_subjects) {
-                    entry.subject.other_subjects.forEach(subject => {
-                      contentP.append(` ${subject}`);
-                    });
-                  }
-                  entryDiv.append(contentP);
-                }
-                if (entry.submitTime) {
-                  entryDiv.append(`<p class="entry-submitTime submitTime">Submit time: ${entry.submitTime}</p>`);
-                }
-                entryDiv.append(`<p class="entry-summary summary">Summary: ${entry.Summary}</p>`);
-                entryDiv.append(`<button class='mobile-button' onclick="openLink('${entry['PDF Link']}')">Open PDF</button>`);
-                <% if (loggedIn) { %>
-                  entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'interesting', '<%=category%>')">Download intersting</button>`);
-                  entryDiv.append(`<button class='mobile-button' onclick="downloadurl('${entry['Arxiv ID']}','${date}', 'related', '<%=category%>')">Download related</button>`);
-                <% } %>
-                  contentDiv.append(entryDiv);
-                triggerAllCheckboxes();
-                contentDiv.data('entry', entry); // Store the entry data for later use
-                document.dispatchEvent(new Event('DOMContentLoaded'));
-              });
-            }
-          )
+          ['New', 'Update'].forEach(strs => {
+            contentDiv.append(`<div class="title-type">${strs} (${formatDate2(date)})</div>`);
+            data[strs].forEach(entry => {
+              const entryDiv = $('<div class="entry"></div>');
+              entryDiv.append(`<div class="entry-title">${entry.Title}</div>`)
+                .append(`<p class="entry-author authors">Authors: ${entry.Authors}</p>`)
+                .append(entry['arxiv_comment'] ? `<p class="entry-comments comments">Comments: ${entry['arxiv_comment']}</p>` : '')
+                .append(createSubjects(entry.subject))
+                .append(entry.submitTime ? `<p class="entry-submitTime submitTime">Submit time: ${entry.submitTime}</p>` : '')
+                .append(`<p class="entry-summary summary">Summary: ${entry.Summary}</p>`)
+                .append(`<button class='mobile-button' onclick="openLink(event,'${entry['PDF Link']}')">Open <i class="fa fa-file-pdf-o"></i></button>`);
+              <% if (loggedIn) { %>
+              entryDiv.append(`<button class='mobile-button' onclick="downloadurl(this,event,'${entry['Arxiv ID']}','${date}', 'interesting', '<%=category%>')"><i class="fa fa-download"></i> Intersting</button>`)
+                .append(`<button class='mobile-button' onclick="downloadurl(this,event,'${entry['Arxiv ID']}','${date}', 'related', '<%=category%>')"><i class="fa fa-download"></i> Related</button>`);
+              <% } %>
+              entryDiv.append('<button class="hideDetails mobile-button" style="display:none"><i class="fa fa-chevron-up"></i></button>')
+                .append(`<div class="loading entry-title"></div>`);
+              contentDiv.append(entryDiv);
+              triggerAllCheckboxes();
+              contentDiv.data('entry', entry); // Store the entry data for later use
+              renderMath();
+              showHideContent();
+              showDetailsWhenClick();
+
+            });
+          });
         });
     }
 
-    function openLink(link) {
-      console.log(link);
+    function showDetailsWhenClick() {
+      $('.entry').off('click').on('click', function() {
+        console.log('div clicked');
+        if ($(this).children('.hideDetails').length === 0) {
+          $(this).append('<button class="hideDetails mobile-button" style="display:none"><i class="fa fa-chevron-up"></i></button>');
+        }
+
+        $(this).children().each(function() {
+          $(this).data('original-display', $(this).css('display')).show();
+        });
+
+        $(this).children('.hideDetails').off('click').on('click', function() {
+          event.stopPropagation();
+          $(this).parent().children('div, p').each(function() {
+            console.log($(this));
+            var originalDisplay = $(this).data('original-display');
+            console.log(originalDisplay);
+            $(this).css('display', originalDisplay);
+          });
+          $(this).hide();
+        });
+
+      });
+    }
+
+    function formatDate2(yymmdd) {
+      const date = new Date(parseInt(yymmdd.substring(0, 2), 10) + 2000, parseInt(yymmdd.substring(2, 4), 10) - 1, parseInt(yymmdd.substring(4, 6), 10));
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+
+    function createSubjects(subjectData) {
+      if (!subjectData) return '';
+      const contentP = $('<p class="entry-subjects subjects">Subjects: </p>');
+      if (subjectData.primary_subject) {
+        contentP.append(`<span class="primaryCategory">${subjectData.primary_subject}</span>`);
+      }
+      if (subjectData.other_subjects) {
+        subjectData.other_subjects.forEach(subject => contentP.append(` ${subject}`));
+      }
+      return contentP;
+    }
+
+
+    function openLink(event, link) {
+      event.stopPropagation();
       window.open(link, '_blank');
     }
 
@@ -350,220 +360,206 @@
       const day = dateStr.slice(4, 6);
       return `${year}-${month}-${day}`;
     };
-    <% console.log(loggedIn); %>
     <% if (loggedIn) { %>
-      async function updateDate(yymmdd) {
-        console.log(yymmdd);
-        const response = await fetch('/update-date', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            date: yymmdd,
-            category: '<%= category %>'
-          })
-        });
-        const result = await response.json();
-        console.log(result); // Log the response for debugging
-      };
-    <% } %>
-    <% if (loggedIn) { %>
-      async function downloadurl(id, date, type, category) {
-        console.log(id);
-        const response = await fetch('/download', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            id: id,
-            date: date,
-            type: type,
-            category: category
-          })
-        });
-      };
-    <% } %>
-
-      function lowercaseFirstLetter(str) {
-        return str.charAt(0).toLowerCase() + str.slice(1);
-      }
-    // Toggle settings menu
-    document.getElementById('settingsBtn').addEventListener('click', function () {
-      const menu = document.getElementById('settingsMenu');
-      menu.classList.toggle('hidden');
-    });
-
-    // Array of all settings checkboxes
-    const settingsCheckboxes = ['toggleCalendar', 'toggleAuthors', 'toggleComments', 'toggleSubjects', 'toggleSubmitTime', 'toggleSummary'];
-
-    settingsCheckboxes.forEach(function (checkboxId) {
-      const checkbox = document.getElementById(checkboxId);
-      const contentId = lowercaseFirstLetter(checkboxId.replace('toggle', ''));
-      console.log(contentId);
-      let contents = document.querySelectorAll(`.${contentId}`);
-
-      // Apply stored settings
-      if (localStorage.getItem(checkboxId) === 'true') {
-        checkbox.checked = true;
-        contents.forEach(content => content.classList.remove('hidden'));
-      } else if (localStorage.getItem(checkboxId) === 'false') {
-        checkbox.checked = false;
-        contents.forEach(content => content.classList.add('hidden'));
-      }
-
-      console.log(checkboxId);
-      console.log(checkbox);
-      checkbox.addEventListener('change', function () {
-        let contents = document.querySelectorAll(`.${contentId}`);
-        if (this.checked) {
-          contents.forEach(content => content.classList.remove('hidden'));
-        } else {
-          contents.forEach(content => content.classList.add('hidden'));
-        }
-        localStorage.setItem(checkboxId, this.checked);
+    async function updateDate(yymmdd) {
+      console.log(yymmdd);
+      const response = await fetch('/update-date', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          date: yymmdd,
+          category: '<%= category %>'
+        })
       });
-    });
-    const menuToggle = document.querySelector('.menu-toggle');
-
-    menuToggle.addEventListener('click', function () {
-      const menu = document.getElementById('category');
-      if (menu.style.display === 'none' || menu.style.display === '') {
-        menu.style.display = 'block';
-      } else {
-        menu.style.display = 'none';
+      const result = await response.json();
+      console.log(result); // Log the response for debugging
+    };
+    <% } %>
+    <% if (loggedIn) { %>
+    async function downloadurl(element, event, id, date, type, category) {
+      console.log(id);
+      event.stopPropagation();
+      $(element).parent().children('.loading').empty().append('<i class="fa fa-spinner fa-pulse fa-fw"></i>');
+      const response = await fetch('/download', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: id,
+          date: date,
+          type: type,
+          category: category
+        })
+      });
+      console.log(element);
+      if (response.ok) {
+        json = await response.json();
+        if (json.message === 'Success') {
+          $(element).parent().children('.loading').empty().append('<i class="fa fa-check"></i>');
+        } else if (json.message === 'Fail') {
+          $(element).parent().children('.loading').empty().append('<i class="fa fa-times"></i>');
+        } else {
+          $(element).parent().children('.loading').empty().append('<i class="fa fa-times"></i> ' + json.message);
+        }
       }
-    });
+    };
+    <% } %>
+
+    function settingMenu() {
+      // Toggle settings menu
+      $('#settingsBtn').on('click', function() {
+        $('#settingsMenu').toggle();
+      });
+
+      // Array of all settings checkboxes
+      const settingsCheckboxes = ['toggleCalendar', 'toggleAuthors', 'toggleComments', 'toggleSubjects', 'toggleSubmitTime', 'toggleSummary'];
+
+      settingsCheckboxes.forEach(function(checkboxId) {
+        const $checkbox = $(`#${checkboxId}`);
+        const contentId = lowercaseFirstLetter(checkboxId.replace('toggle', ''));
+
+        // Apply stored settings
+        const storedSetting = localStorage.getItem(checkboxId);
+        $checkbox.prop('checked', storedSetting === 'true');
+
+        // Change event for checkboxes
+        $checkbox.on('change', function() {
+          console.log(contentId);
+          $(`.${contentId}`).toggle(this.checked);
+          localStorage.setItem(checkboxId, this.checked);
+        });
+      });
+
+      $('.menu-toggle button').on('click', function() {
+        $('#category').toggle();
+      });
+    }
+
+    function showHideContent() {
+      const settingsCheckboxes = ['toggleCalendar', 'toggleAuthors', 'toggleComments', 'toggleSubjects', 'toggleSubmitTime', 'toggleSummary'];
+      settingsCheckboxes.forEach(function(checkboxId) {
+        const contentId = lowercaseFirstLetter(checkboxId.replace('toggle', ''));
+        $(`.${contentId}`).toggle(localStorage.getItem(checkboxId) === 'true');
+      });
+    }
+
+
+    function lowercaseFirstLetter(str) {
+      return str.charAt(0).toLowerCase() + str.slice(1);
+    }
+
 
     function preventscroll() {
-      document.querySelector('.menu').addEventListener('wheel', function (e) {
-        var deltaY = e.deltaY;
+      $('.menu').on('wheel', function(e) {
+        var deltaY = e.originalEvent.deltaY;
         var contentHeight = this.scrollHeight;
-        var visibleHeight = this.offsetHeight;
-        var scrollTop = this.scrollTop;
+        var visibleHeight = $(this).height();
+        var scrollTop = $(this).scrollTop();
 
         if ((scrollTop === 0 && deltaY < 0) || (scrollTop + visibleHeight >= contentHeight && deltaY > 0)) {
           e.preventDefault();
         }
-      }, { passive: false });
+      });
     }
-  </script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
+
+
+    function renderMath() {
       renderMathInElement(document.body, {
         delimiters: [{
-          left: '$$',
-          right: '$$',
-          display: true
-        },
-        {
-          left: '$',
-          right: '$',
-          display: false
-        },
-        {
-          left: '\\(',
-          right: '\\)',
-          display: false
-        },
-        {
-          left: '\\[',
-          right: '\\]',
-          display: true
-        }
+            left: '$$',
+            right: '$$',
+            display: true
+          },
+          {
+            left: '$',
+            right: '$',
+            display: false
+          },
+          {
+            left: '\\(',
+            right: '\\)',
+            display: false
+          },
+          {
+            left: '\\[',
+            right: '\\]',
+            display: true
+          }
         ],
         // • rendering keys, e.g.:
         throwOnError: false
       });
+    }
+
+    function setUpBtn() {
+      var posTop = localStorage.getItem('posTop');
+      if (posTop && parseInt(posTop, 10) <= $(window).height()) {
+        $('#backToTop').css('top', posTop + 'px');
+      }
+    }
 
 
-      const backToTopButton = document.getElementById('backToTop');
+    $(document).ready(function() {
+      renderMath();
+      setUpBtn();
+
+      var $backToTopButton = $('#backToTop');
       let isDragging = false;
 
-      // Function to move the button to a new position
       function moveButtonTo(pageX, pageY) {
-        const shiftX = backToTopButton.offsetWidth / 2;
-        const shiftY = backToTopButton.offsetHeight / 2;
+        const shiftX = $backToTopButton.outerWidth() / 2;
+        const shiftY = $backToTopButton.outerHeight() / 2;
 
-        // backToTopButton.style.left = pageX - shiftX + 'px';
-        backToTopButton.style.top = pageY - shiftY + 'px';
+        $backToTopButton.css({
+          'top': (pageY - shiftY) + 'px'
+          // 'left': (pageX - shiftX) + 'px'
+        });
+        localStorage.setItem('posTop', pageY - shiftY);
       }
 
-      // Function to handle the start of a drag/touch event
       function startDrag(event) {
         event.preventDefault();
         isDragging = false;
 
-        let initialX, initialY;
+        let initialX = event.type === 'mousedown' ? event.clientX : event.touches[0].clientX;
+        let initialY = event.type === 'mousedown' ? event.clientY : event.touches[0].clientY;
 
-        if (event.type === 'mousedown') {
-          initialX = event.clientX;
-          initialY = event.clientY;
-        } else if (event.type === 'touchstart') {
-          initialX = event.touches[0].clientX;
-          initialY = event.touches[0].clientY;
-        }
-
-        // Function to handle movement (both mouse and touch)
-        function onMove(moveEvent) {
+        $(document).on('mousemove touchmove', function(moveEvent) {
           isDragging = true;
-          let currentX, currentY;
-
-          if (moveEvent.type === 'mousemove') {
-            currentX = moveEvent.clientX;
-            currentY = moveEvent.clientY;
-          } else if (moveEvent.type === 'touchmove') {
-            currentX = moveEvent.touches[0].clientX;
-            currentY = moveEvent.touches[0].clientY;
-          }
-
+          let currentX = moveEvent.type === 'mousemove' ? moveEvent.clientX : moveEvent.touches[0].clientX;
+          let currentY = moveEvent.type === 'mousemove' ? moveEvent.clientY : moveEvent.touches[0].clientY;
           moveButtonTo(currentX, currentY);
-        }
+        });
 
-        // Function to clean up after drag/touch end
-        function endDrag() {
-          document.removeEventListener('mousemove', onMove);
-          document.removeEventListener('mouseup', endDrag);
-          document.removeEventListener('touchmove', onMove);
-          document.removeEventListener('touchend', endDrag);
-        }
-
-        document.addEventListener('mousemove', onMove);
-        document.addEventListener('mouseup', endDrag);
-        document.addEventListener('touchmove', onMove, { passive: false });
-        document.addEventListener('touchend', endDrag);
+        $(document).one('mouseup touchend', function() {
+          $(document).off('mousemove touchmove');
+        });
       }
 
-      backToTopButton.addEventListener('touchstart', () => {
+      $backToTopButton.on('mousedown touchstart', function(event) {
+        if (event.type === 'touchstart') {
+          isDragging = false;
+          $(this).addClass('active');
+        }
+        startDrag(event);
+      });
+
+      $backToTopButton.on('click touchend', function(event) {
+        $(this).removeClass('active');
+        if (!isDragging) {
+          $('html, body').animate({
+            scrollTop: 0
+          }, 'smooth');
+        }
         isDragging = false;
-        backToTopButton.classList.add('active'); // 添加按下效果
       });
 
-      // Add event listeners for mouse events
-      backToTopButton.addEventListener('mousedown', startDrag);
-
-      // Add event listeners for touch events
-      backToTopButton.addEventListener('touchstart', startDrag, { passive: false });
-
-      backToTopButton.addEventListener('click', () => {
-        if (isDragging) {
-          return;
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-
-      backToTopButton.addEventListener('touchend', () => {
-        backToTopButton.classList.remove('active');
-        if (isDragging) {
-          return;
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-
-      backToTopButton.ondragstart = function () {
+      $backToTopButton.on('dragstart', function() {
         return false;
-      };
+      });
 
     });
   </script>
