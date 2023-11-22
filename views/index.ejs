@@ -308,9 +308,12 @@
           $(this).append('<button class="hideDetails mobile-button" style="display:none"><i class="fa fa-chevron-up"></i></button>');
         }
 
-        $(this).children().each(function() {
-          $(this).data('original-display', $(this).css('display')).show();
-        });
+        if ($(this).children('.hideDetails').css('display') === 'none') {
+          $(this).children().each(function() {
+            $(this).data('original-display', $(this).css('display')).show();
+          });
+        }
+
 
         $(this).children('.hideDetails').off('click').on('click', function() {
           event.stopPropagation();
@@ -496,8 +499,19 @@
 
     function setUpBtn() {
       var posTop = localStorage.getItem('posTop');
+      var posisLeft = localStorage.getItem('posisLeft');
       if (posTop && parseInt(posTop, 10) <= $(window).height()) {
         $('#backToTop').css('top', posTop + 'px');
+      }
+      var val= $(window).width()<768 ? '0px' : '20px';
+
+      if (!posisLeft || posisLeft === 'true') {
+        $('#backToTop').css('left', val);
+        $('#backToTop').css('right', "");
+      }
+      else{
+        $('#backToTop').css('right', val);
+        $('#backToTop').css('left', "");
       }
     }
 
@@ -513,9 +527,11 @@
         const shiftX = $backToTopButton.outerWidth() / 2;
         const shiftY = $backToTopButton.outerHeight() / 2;
 
+        localStorage.setItem('posisLeft', pageX < $(window).width() / 2 ? true : false);
+
         $backToTopButton.css({
-          'top': (pageY - shiftY) + 'px'
-          // 'left': (pageX - shiftX) + 'px'
+          'top': (pageY - shiftY) + 'px',
+          'left': (pageX - shiftX) + 'px'
         });
         localStorage.setItem('posTop', pageY - shiftY);
       }
@@ -554,6 +570,7 @@
             scrollTop: 0
           }, 'smooth');
         }
+        setUpBtn();
         isDragging = false;
       });
 
