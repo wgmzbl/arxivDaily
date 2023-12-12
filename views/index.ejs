@@ -43,29 +43,37 @@
     <button id="settingsBtn" class="settings-icon"><i class="fa fa-cog"></i></button>
   </div>
   <div id="settingsMenu">
+    <% if (loggedIn) {%>
+    <div class="entry-title">Welcome <%= user %></div>
+    <button class='mobile-button' onclick="window.location.href='/user'">User info</button>
+    <button class='mobile-button' onclick="window.location.href='/logout'">Logout</button>
+    <% } else { %>
+    <button class='mobile-button' onclick="window.location.href='/login'">Login</button>
+    <% } %>
+
     <label>
       <input class="toggleCheckbox" type="checkbox" checked id="toggleCalendar">
-      <span class="slider"></span> <!-- This is the toggle switch -->
+      <span class="slider"></span>
       Show calendar
     </label>
     <label>
       <input class="toggleCheckbox" type="checkbox" checked id="toggleAuthors">
-      <span class="slider"></span> <!-- This is the toggle switch -->
+      <span class="slider"></span>
       Show authors
     </label>
     <label>
       <input class="toggleCheckbox" type="checkbox" id="toggleComments">
-      <span class="slider"></span> <!-- This is the toggle switch -->
+      <span class="slider"></span>
       Show comments
     </label>
     <label>
       <input class="toggleCheckbox" type="checkbox" id="toggleSubmitTime">
-      <span class="slider"></span> <!-- This is the toggle switch -->
+      <span class="slider"></span>
       Show submit time
     </label>
     <label>
       <input class="toggleCheckbox" type="checkbox" checked id="toggleSubjects">
-      <span class="slider"></span> <!-- This is the toggle switch -->
+      <span class="slider"></span>
       Show subjects
     </label>
     <label>
@@ -73,13 +81,13 @@
       <span class="slider"></span> <!-- This is the toggle switch -->
       Show summary
     </label>
-    <label>
+    <!--<label>
       <button id="edit-btn" class="mobile-button">Edit Menu</button>
       <button id="complete-btn" style="display:none;" class="mobile-button">Complete</button>
     </label>
     <div class="settings-menu-footer">
       <a class="transparent-link" href="/login">Login</a>
-    </div>
+    </div>-->
   </div>
   <div id="backToTop" class="draggable">
     <i class="fa fa-arrow-circle-up" aria-hidden="true"></i>
@@ -122,7 +130,6 @@
 
             }
           });
-
           showMenu();
           $("#datepicker").datepicker("setDate", formatDate(closestDate));
           fetchData(closestDate, '<%= category %>');
@@ -193,7 +200,7 @@
     }
 
     function showMenu() {
-      $.get('/categories')
+      $.get('/getUserCategories')
         .done(function(result) {
           const contentDiv = $('#category');
           const contentMenu = $('<ul class="menu" id="menu"></ul>');
@@ -210,8 +217,6 @@
 
           contentDiv.append(contentMenu);
           preventscroll();
-          adjustMenuFromLocalStorage();
-          setDragMenu();
         });
     }
 
@@ -258,13 +263,11 @@
       <% if (loggedIn) { %>
       updateDate(date);
       <% } %>
-      console.log(category + ' ' + date);
       const contentDiv = $('#content');
       contentDiv.empty().append('<div class="title-type"><i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i><div>');
 
       $.get(`/${category}/${date}`)
         .done(function(data) {
-          console.log(data);
           contentDiv.empty();
 
           if ('message' in data) {
@@ -283,9 +286,12 @@
                 .append(entry.submitTime ? `<p class="entry-submitTime submitTime">Submit time: ${entry.submitTime}</p>` : '')
                 .append(`<p class="entry-summary summary">Summary: ${entry.Summary}</p>`)
                 .append(`<button class='mobile-button' onclick="openLink(event,'${entry['PDF Link']}')">Open <i class="fa fa-file-pdf-o"></i></button>`);
-              <% if (loggedIn) { %>
+              <% if (loggedIn && isAdmin) { %>
               entryDiv.append(`<button class='mobile-button' onclick="downloadurl(this,event,'${entry['Arxiv ID']}','${date}', 'interesting', '<%=category%>')"><i class="fa fa-download"></i> Intersting</button>`)
                 .append(`<button class='mobile-button' onclick="downloadurl(this,event,'${entry['Arxiv ID']}','${date}', 'related', '<%=category%>')"><i class="fa fa-download"></i> Related</button>`);
+              <% } %>
+              <% if (loggedIn) { %>
+              entryDiv.append(`<button class='mobile-button' onclick="saveFavor(this,event,'${entry['Arxiv ID']}','${date}', 'interesting', '<%=category%>')"><i class="fa fa-star-o"></i></button>`);
               <% } %>
               entryDiv.append('<button class="hideDetails mobile-button" style="display:none"><i class="fa fa-chevron-up"></i></button>')
                 .append(`<div class="loading entry-title"></div>`);
@@ -303,7 +309,6 @@
 
     function showDetailsWhenClick() {
       $('.entry').off('click').on('click', function() {
-        console.log('div clicked');
         if ($(this).children('.hideDetails').length === 0) {
           $(this).append('<button class="hideDetails mobile-button" style="display:none"><i class="fa fa-chevron-up"></i></button>');
         }
@@ -318,9 +323,7 @@
         $(this).children('.hideDetails').off('click').on('click', function() {
           event.stopPropagation();
           $(this).parent().children('div, p').each(function() {
-            console.log($(this));
             var originalDisplay = $(this).data('original-display');
-            console.log(originalDisplay);
             $(this).css('display', originalDisplay);
           });
           $(this).hide();
@@ -365,7 +368,6 @@
     };
     <% if (loggedIn) { %>
     async function updateDate(yymmdd) {
-      console.log(yymmdd);
       const response = await fetch('/update-date', {
         method: 'POST',
         headers: {
@@ -377,12 +379,35 @@
         })
       });
       const result = await response.json();
-      console.log(result); // Log the response for debugging
+    };
+    async function saveFavor(element, event, id, date, type, category) {
+      event.stopPropagation();
+      $(element).parent().children('.loading').empty().append('<i class="fa fa-spinner fa-pulse fa-fw"></i>');
+      const response = await fetch('/saveFavor', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: id,
+          date: date,
+          category: category
+        })
+      });
+      if (response.ok) {
+        json = await response.json();
+        if (json.message === 'Success') {
+          $(element).parent().children('.loading').empty().append('<i class="fa fa-check"></i>');
+        } else if (json.message === 'Fail') {
+          $(element).parent().children('.loading').empty().append('<i class="fa fa-times"></i>');
+        } else {
+          $(element).parent().children('.loading').empty().append('<i class="fa fa-times"></i> ' + json.message);
+        }
+      }
     };
     <% } %>
-    <% if (loggedIn) { %>
+    <% if (loggedIn && isAdmin) { %>
     async function downloadurl(element, event, id, date, type, category) {
-      console.log(id);
       event.stopPropagation();
       $(element).parent().children('.loading').empty().append('<i class="fa fa-spinner fa-pulse fa-fw"></i>');
       const response = await fetch('/download', {
@@ -397,7 +422,6 @@
           category: category
         })
       });
-      console.log(element);
       if (response.ok) {
         json = await response.json();
         if (json.message === 'Success') {
@@ -430,7 +454,6 @@
 
         // Change event for checkboxes
         $checkbox.on('change', function() {
-          console.log(contentId);
           $(`.${contentId}`).toggle(this.checked);
           localStorage.setItem(checkboxId, this.checked);
         });
@@ -503,13 +526,12 @@
       if (posTop && parseInt(posTop, 10) <= $(window).height()) {
         $('#backToTop').css('top', posTop + 'px');
       }
-      var val= $(window).width()<768 ? '0px' : '20px';
+      var val = $(window).width() < 768 ? '0px' : '20px';
 
       if (!posisLeft || posisLeft === 'true') {
         $('#backToTop').css('left', val);
         $('#backToTop').css('right', "");
-      }
-      else{
+      } else {
         $('#backToTop').css('right', val);
         $('#backToTop').css('left', "");
       }

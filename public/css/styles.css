@@ -174,7 +174,7 @@ a.single-line {
 
 /* Mobile Button Styles */
 
-.mobile-button {
+button, .mobile-button {
     display: inline-block;
     padding: 8px 15px;
     font-size: 16px;
@@ -190,13 +190,13 @@ a.single-line {
     transition: background-color 0.4s ease;
 }
 
-.mobile-button:hover {
+button:hover, .mobile-button:hover {
     background-color: white;
     color: black;
     border: 2px solid #008CBA;
 }
 
-.mobile-button:active {
+button:active, .mobile-button:active {
     color: black;
     background-color: #005f5f;
 }
@@ -400,7 +400,7 @@ a.single-line {
         width: 100%;
         top: 45px;
         left: 0;
-        z-index: 1000;
+        z-index: 10001;
         overflow-y: scroll;
         height: 80vh;
     }
@@ -459,6 +459,7 @@ a.single-line {
     z-index: 999;
     width: 50px;
     height: 50px;
+    margin: 0px;
 }
 
 #settingsBtn:hover {
@@ -541,4 +542,51 @@ a.transparent-link {
     opacity: 0;
     text-decoration: none;
     cursor: default;
+}
+
+.login-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    width: 250;
+}
+.login-container input, .login-container button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* 包括边框和内边距在元素的总宽度和高度中 */
+}
+.login-container button {
+    border: none;
+    background-color: #2d7af9;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    width: auto;
+}
+.input-group {
+    position: relative;
+    display: table;
+    border-collapse: separate
+}
+.input-group-addon {
+    display: table-cell;
+    padding: 6px 6px;
+    font-size: 14px;
+    line-height: 1;
+    text-align: center;
+    border-radius: 4px;
+}
+form{
+    margin: 0;
+    border: none;
+}
+.center-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
 }
