@@ -301,7 +301,6 @@
               renderMath();
               showHideContent();
               showDetailsWhenClick();
-
             });
           });
         });
@@ -450,7 +449,12 @@
 
         // Apply stored settings
         const storedSetting = localStorage.getItem(checkboxId);
-        $checkbox.prop('checked', storedSetting === 'true');
+        if (storedSetting === null) {
+          localStorage.setItem(checkboxId, $checkbox.prop('checked'));
+        }
+        else{
+          $checkbox.prop('checked', storedSetting === 'true');
+        }
 
         // Change event for checkboxes
         $checkbox.on('change', function() {
