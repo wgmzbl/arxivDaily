@@ -487,11 +487,6 @@ app.post('/download', requireAdmin , (req, res) => {
   const yymmdd = req.body.date;
   const type = req.body.type; //interesting or related
   const category = req.body.category;
-  if (!check(category, yymmdd)) {
-    console.log('invaid category' + category + ' ' + yymmdd);
-    res.json({ message: 'Invalid request!' });
-    return;
-  }
   if (!(/^[0-9]{4}\.[0-9v]{4,7}$/.test(id))) {
     console.log('invaid id' + id);
     res.json({ message: 'Invalid request!' });
