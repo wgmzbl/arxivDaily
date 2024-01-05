@@ -52,6 +52,11 @@ const saveFavorSchema = joi.object({
   category: joi.string().pattern(new RegExp('^[a-zA-Z\.]+$')).required().error(new Error('Category is not valid!')),
 });
 
+const saveNoteSchema = joi.object({
+  id: joi.string().pattern(new RegExp('^[0-9]{4}\.[0-9v]{4,7}$')).required().error(new Error('Id is not valid!')),
+  note: joi.string().max(1000).required().error(new Error('Note is not valid! The note must be less than 1000 characters long!')),
+});
+
 const categorySchema = joi.object({
   category: joi.string().pattern(new RegExp('^[a-zA-Z\.]+$')).required().error(new Error('Category is not valid!')),
 });
@@ -63,7 +68,7 @@ const categoriesSchema = joi.object({
 const validateRequestBody = (schema) => (req, res, next) => {
   const { error } = schema.validate(req.body);
   if (error) {
-      return res.status(400).send(error.details[0].message);
+    return res.status(400).send(error.details[0].message);
   }
   next();
 };
@@ -72,8 +77,8 @@ const validateParams = (schema) => (req, res, next) => {
   const { error } = schema.validate(req.params);
   if (error) {
     console.log(req.body);
-      console.log(error);
-      return res.status(400).send(error.details[0].message);
+    console.log(error);
+    return res.status(400).send(error.details[0].message);
   }
   next();
 }
@@ -87,6 +92,7 @@ mongoose.connect(process.env.MONGO_URI, {
 }).catch(err => {
   console.error('Error connecting to MongoDB', err);
 });
+
 
 const datapath = config.datapath;
 
@@ -163,7 +169,7 @@ app.post('/login', async (req, res) => {
     const validationResult = loginSchema.validate(req.body);
     const { username, password } = req.body;
     if (validationResult.error) {
-      res.json({success: false, message: "Incorrect username or password"});
+      res.json({ success: false, message: "Incorrect username or password" });
       return;
     }
     const user = await User.findOne({ username: username });
@@ -405,7 +411,7 @@ app.get('/read/:category', validateParams(categorySchema), async (req, res) => {
 });
 
 
-app.get('/closedAvaliableDate/:category/:data', validateParams(categoryDateSchema),(req, res) => {
+app.get('/closedAvaliableDate/:category/:data', validateParams(categoryDateSchema), (req, res) => {
   // Get closed avaliable data of a category on a date
   const category = req.params.category;
   const date = req.params.date;
@@ -480,7 +486,7 @@ function fetchWithRetry(url, retries = 3, delay = 2000) {
   return attemptFetch(retries);
 }
 
-app.post('/download', requireAdmin , (req, res) => {
+app.post('/download', requireAdmin, (req, res) => {
   // Download pdf, fetching info and save it to json and md
 
   const id = req.body.id;
@@ -672,6 +678,46 @@ app.post('/fetchInteresting', requireLogin, (req, res) => {
       res.json({ message: 'Invalid request!' });
       return;
     });
+});
+
+app.post('/submitNote', requireLogin, validateRequestBody(saveNoteSchema), async (req, res) => {
+  const { id , note } = req.body;
+  userId = req.session.userId;
+  try {
+    const user = await User.findOne({ username: userId });
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+    const existingNote = user.notes.find(n => n.arxivId === id);
+    if (existingNote) {
+      existingNote.note = note;
+      existingNote.date = new Date();
+    } else {
+      user.notes.push({ arxivId:id, note, date: new Date() });
+    }
+
+    await user.save();
+    res.status(200).send('Note updated successfully');
+  } catch (error) {
+    res.status(500).send('Server error');
+  }
+});
+
+app.post('/fetchNote', requireLogin, validateRequestBody(arxivIdSchema), async (req, res) => {
+  userId = req.session.userId;
+  const { id } = req.body;
+  try {
+    const user = await User.findOne({ username: userId });
+    const existingNote = user.notes.find(n => n.arxivId === id);
+    if (existingNote) {
+      res.json({ note: existingNote.note, date: existingNote.date });
+    } else {
+      res.json({ note: "", date: "" });
+    }
+  }
+  catch (error) {
+    res.status(500).send('Server error');
+  }
 });
 
 app.post('/deleteInteresting', requireLogin, validateRequestBody(arxivIdSchema), (req, res) => {

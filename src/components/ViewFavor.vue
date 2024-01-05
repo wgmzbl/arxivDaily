@@ -10,8 +10,15 @@
           <div class="entry-comments">{{ paper.comments }}</div>
           <div class="entry-submitTime">{{ paper.submitTime }}</div>
           <div class="entry-summary">{{ paper.summary }}</div>
+          <div v-if="paper.note" class="entry-note"><b>Note: </b>{{ paper.note }}</div>
           <button @click="navigateTo(paper.url)"><i class="fa fa-file-pdf-o"></i></button>
+          <button @click="openNoteModal(paper)"><i class="fa fa-sticky-note-o"></i></button>
           <button @click="deleteInteresting(paper.arxivId)"><i class="fa fa-trash"></i></button>
+          <div v-if="showNoteModal && selectedPaperId === paper.arxivId" class="note-modal">
+            <div><textarea class="form-control" v-model="currentNote"></textarea></div>
+            <div><button @click="submitNote()">Submit</button>
+            <button @click="closeNoteModal()">Cancel</button></div>
+          </div>
         </div>
         <div class="pagination-container">
           <button @click="prevPage" :disabled="currentPage <= 1"><i class="fa fa-arrow-left"
@@ -43,6 +50,8 @@ export default {
       currentPapers: [],
       currentPage: 1,
       pageSize: 10,
+      showNoteModal: false,
+      selectedPaperId: null,
     };
   },
   watch: {
@@ -80,6 +89,36 @@ export default {
     },
   },
   methods: {
+    openNoteModal(paper) {
+      this.selectedPaperId = paper.arxivId;
+      this.currentNote = paper.note || '';
+      this.showNoteModal = true;
+    },
+    async submitNote() {
+      this.isSaving = true;
+      try {
+        this.updateLocalNote(this.selectedPaperId, this.currentNote);
+        await axios.post('/submitNote', {
+          id: this.selectedPaperId,
+          note: this.currentNote
+        });
+      } catch (error) {
+        console.error('Error submitting note:', error);
+      }
+      this.isSaving = false;
+      this.closeNoteModal();
+    },
+    updateLocalNote(arxivId, updatedNote) {
+      const paperIndex = this.currentPapers.findIndex(p => p.arxivId === arxivId);
+      if (paperIndex > -1) {
+        this.currentPapers[paperIndex].note = updatedNote;
+      }
+    },
+    closeNoteModal() {
+      this.showNoteModal = false;
+      this.selectedPaperId = null;
+      this.currentNote = '';
+    },
     navigateTo(url) {
       window.open(url, '_blank');
     },
@@ -120,7 +159,13 @@ export default {
         let curPaper = [];
         for (const id of currentIds) {
           const response = await axios.post('/fetchPaperData', { id });
-          curPaper.push(response.data);
+          const noteResponse = await axios.post('/fetchNote', { id });
+          const paperWithNote = {
+            ...response.data,
+            note: noteResponse.data.note,
+            noteDate: noteResponse.data.date
+          };
+          curPaper.push(paperWithNote);
         }
         this.currentPapers = curPaper;
       } catch (error) {
@@ -140,6 +185,10 @@ export default {
       }
     },
     async deleteInteresting(id) {
+      const confirmed = window.confirm('Are you sure you want to delete this item?');
+      if (!confirmed) {
+        return;
+      }
       try {
         await axios.post('/deleteInteresting', { id });
         // Re-fetch the interesting papers list
