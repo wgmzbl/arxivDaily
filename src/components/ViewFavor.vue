@@ -17,7 +17,8 @@
           <div v-if="showNoteModal && selectedPaperId === paper.arxivId" class="note-modal">
             <div><textarea class="form-control" v-model="currentNote"></textarea></div>
             <div><button @click="submitNote()">Submit</button>
-            <button @click="closeNoteModal()">Cancel</button></div>
+              <button @click="closeNoteModal()">Cancel</button>
+            </div>
           </div>
         </div>
         <div class="pagination-container">
@@ -156,18 +157,8 @@ export default {
       const start = (this.currentPage - 1) * this.pageSize;
       const currentIds = this.paperIds.slice(start, start + this.pageSize);
       try {
-        let curPaper = [];
-        for (const id of currentIds) {
-          const response = await axios.post('/fetchPaperData', { id });
-          const noteResponse = await axios.post('/fetchNote', { id });
-          const paperWithNote = {
-            ...response.data,
-            note: noteResponse.data.note,
-            noteDate: noteResponse.data.date
-          };
-          curPaper.push(paperWithNote);
-        }
-        this.currentPapers = curPaper;
+        const response = await axios.post('/fetchPapersData', { ids: currentIds });
+        this.currentPapers = response.data.papersWithNotes;
       } catch (error) {
         console.error('Error fetching current page papers:', error);
       }

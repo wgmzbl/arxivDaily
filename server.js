@@ -46,6 +46,12 @@ const arxivIdSchema = joi.object({
   id: joi.string().pattern(new RegExp('^[0-9]{4}\.[0-9v]{4,7}$')).required().error(new Error('Id is not valid!')),
 });
 
+const arxivIdsSchema = joi.object({
+  ids: joi.array().items(
+    joi.string().pattern(new RegExp('^[0-9]{4}\.[0-9v]{4,7}$')).required()
+  ).required().error(new Error('Ids are not valid!')),
+});
+
 const saveFavorSchema = joi.object({
   id: joi.string().pattern(new RegExp('^[0-9]{4}\.[0-9v]{4,7}$')).required().error(new Error('Id is not valid!')),
   date: joi.string().pattern(new RegExp('^[0-9\.]{6}$')).required().error(new Error('Date is not valid!')),
@@ -643,6 +649,42 @@ app.get('/logout', (req, res) => {
   res.redirect('/');
 });
 
+app.post('/fetchPapersData', requireLogin, validateRequestBody(arxivIdsSchema), async (req, res) => {
+  const userId = req.session.userId;
+  const { ids } = req.body;
+  try {
+    const user = await User.findOne({ username: userId });
+    if (!ids.every(id => user.interesting.includes(id))) {
+      res.json({ message: 'Invalid request!' });
+      return;
+    }
+
+    const papers = await Paper.find({ arxivId: { $in: ids } });
+    const paperMap = papers.reduce((acc, paper) => {
+      acc[paper.arxivId] = paper;
+      return acc;
+    }, {});
+
+    const papersWithNotes = ids.map(id => {
+      const paper = paperMap[id];
+      if (!paper) return null;
+
+      const existingNote = user.notes.find(n => n.arxivId === id);
+      return {
+        ...paper.toObject(),
+        note: existingNote ? existingNote.note : "",
+        noteDate: existingNote ? existingNote.date : ""
+      };
+    });
+
+    res.json({ papersWithNotes });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send('Server error');
+  }
+});
+
+
 app.post('/fetchPaperData', requireLogin, validateRequestBody(arxivIdSchema), (req, res) => {
   userId = req.session.userId;
   const { id } = req.body;
@@ -667,18 +709,24 @@ app.post('/fetchPaperData', requireLogin, validateRequestBody(arxivIdSchema), (r
     });
 });
 
-app.post('/fetchInteresting', requireLogin, (req, res) => {
-  userId = req.session.userId;
-  User.findOne({ username: userId })
-    .then((user) => {
-      res.json(user.interesting);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.json({ message: 'Invalid request!' });
+app.post('/fetchInteresting', requireLogin, async (req, res) => {
+  const userId = req.session.userId;
+
+  try {
+    const user = await User.findOne({ username: userId });
+    if (!user) {
+      res.status(404).json({ message: 'User not found!' });
       return;
-    });
+    }
+
+    const reversedInteresting = user.interesting.reverse();
+    res.json(reversedInteresting);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
+
 
 app.post('/submitNote', requireLogin, validateRequestBody(saveNoteSchema), async (req, res) => {
   const { id , note } = req.body;
