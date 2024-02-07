@@ -1,10 +1,36 @@
 import feedparser
+from datetime import datetime
 import json
 import re
 import time
 import os
 import requests
 from xml.etree import ElementTree
+
+config_path = 'config.json'
+def load_config(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        config = json.load(file)
+    return config
+
+config = load_config(config_path)
+
+def get_update_date(feed):
+    update_date = None
+    if hasattr(feed.feed, 'updated_parsed') and feed.feed.updated_parsed:
+        update_date = time.strftime('%y%m%d', feed.feed.updated_parsed)
+    elif hasattr(feed.feed, 'published_parsed') and feed.feed.published_parsed:
+        update_date = time.strftime('%y%m%d', feed.feed.published_parsed)
+    elif 'pubDate' in feed.feed:
+        try:
+            pub_date = datetime.strptime(feed.feed['pubDate'], '%a, %d %b %Y %H:%M:%S %Z')
+            update_date = pub_date.strftime('%y%m%d')
+        except ValueError:
+            update_date = None
+
+    if not update_date:
+        update_date = datetime.now().strftime('%y%m%d')
+    return update_date
 
 def get_arxiv_details(arxiv_id):
     time.sleep(1)
@@ -28,31 +54,20 @@ def get_arxiv_details(arxiv_id):
         return comment, submitTime, primary_subject, other_subjects
     return "", "", "", []
 
-def load_config(file_path):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        config = json.load(file)
-    return config
-
-config_path = 'config.json'  # 请根据需要更改路径
-config = load_config(config_path)
-
-
-def get_new_arxiv_entries(category):
-    url = f'http://arxiv.org/rss/{category}'
-    feed = feedparser.parse(url)
+def get_new_arxiv_entries(feed):
     entries = {
             "New":[],
             "Update":[]
         }
     for entry in feed.entries:
         title = re.sub(r'\(arXiv:[^\)]+\)', '', entry.title).strip()
-        authors = ", ".join(re.sub(r'<.*?>|\(.*\)', '', author.name).strip() for author in entry.authors)
-        arxiv_id = entry.id.split('/')[-1]
+        authors = ", ".join(re.sub(r'<.*?>|\(.*\)', '', re.sub(r'\n *',', ',author.name)).strip() for author in entry.authors)
+        arxiv_id = entry.id.split(':')[-1].strip().split('v')[0]
         pdf_link = f'https://arxiv.org/pdf/{arxiv_id}.pdf'
         summary = re.sub(r'<.*?>','',entry.summary).strip()
-        if "UPDATED" not in entry.title:
+        if entry.arxiv_announce_type == 'new':
             flag = 'New'
-        else:
+        else:  
             flag = 'Update'
         comment, submitTime, primary_subject, other_subjects = get_arxiv_details(arxiv_id)
         entries[flag].append({
@@ -68,8 +83,7 @@ def get_new_arxiv_entries(category):
                 'other_subjects': other_subjects
             }
         })
-    update_date = time.strftime('%y%m%d', feed.updated_parsed)
-    return entries, update_date
+    return entries
 
 def check_if_empty(path_json):
     with open(path_json, 'r', encoding='utf-8') as f:
@@ -79,11 +93,9 @@ def check_if_empty(path_json):
     return False
 
 def save_to_json(entries, update_date,category):
-    # 确保entries 非空。
     if entries['New'] == [] and entries['Update']==[]:
         print("No articles!")
         return
-    # 确保当前目录下的data目录存在
     data_dir = f'{config["datapath"]}/{category}'
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
@@ -113,17 +125,12 @@ def main():
     for category in categories:
         url = f'http://arxiv.org/rss/{category}'
         feed = feedparser.parse(url)
-        try:
-            update_date = time.strftime('%y%m%d', feed.updated_parsed)
-        except:
-            print(feed)
-            print(f'Failed to get update date for {category}. URL: {url}')
-            continue
+        update_date = get_update_date(feed)
         filename = f'{config["datapath"]}/{category}/{update_date}.json'
         if not os.path.exists(f'{config["datapath"]}/{category}'):
             os.makedirs(f'{config["datapath"]}/{category}')
         if not os.path.exists(filename) or check_if_empty(filename):
-            entries, update_date = get_new_arxiv_entries(category)
+            entries = get_new_arxiv_entries(feed)
             save_to_json(entries, update_date, category)
         else:
             print(f'The file {filename} already exists. No action was taken.')
