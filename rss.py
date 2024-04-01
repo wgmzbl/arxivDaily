@@ -57,18 +57,31 @@ def get_arxiv_details(arxiv_id):
 def get_new_arxiv_entries(feed):
     entries = {
             "New":[],
-            "Update":[]
+            "Update":[],
+            "New-Cross":[],
+            "Update-Cross":[]
         }
     for entry in feed.entries:
         title = re.sub(r'\(arXiv:[^\)]+\)', '', entry.title).strip()
         authors = ", ".join(re.sub(r'<.*?>|\(.*\)', '', re.sub(r'\n *',', ',author.name)).strip() for author in entry.authors)
         arxiv_id = entry.id.split(':')[-1].strip().split('v')[0]
         pdf_link = f'https://arxiv.org/pdf/{arxiv_id}.pdf'
-        summary = re.sub(r'<.*?>','',entry.summary).strip()
+        abstract_index = entry.summary.find('Abstract: ')
+        if abstract_index == -1:
+            print(f'No abstract found for {title}.')
+            abstract_index = 0
+        else:
+            abstract_index += len('Abstract: ')
+        summary = re.sub(r'<.*?>','',entry.summary[abstract_index:]).strip()
         if entry.arxiv_announce_type == 'new':
             flag = 'New'
-        else:  
+        elif entry.arxiv_announce_type == 'cross':
+            flag = 'New-Cross'
+        elif entry.arxiv_announce_type == 'replace':
             flag = 'Update'
+        else:
+            flag = 'Update-Cross'
+
         comment, submitTime, primary_subject, other_subjects = get_arxiv_details(arxiv_id)
         entries[flag].append({
             'Title': title,

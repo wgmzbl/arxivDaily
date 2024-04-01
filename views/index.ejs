@@ -275,7 +275,8 @@
             return;
           }
 
-          ['New', 'Update'].forEach(strs => {
+          ['New', 'New-Cross','Update','Update-Cross'].forEach(strs => {
+            if (!(strs in data)) return;
             contentDiv.append(`<div class="title-type">${strs} (${formatDate2(date)})</div>`);
             data[strs].forEach(entry => {
               const entryDiv = $('<div class="entry"></div>');
