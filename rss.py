@@ -5,6 +5,7 @@ import re
 import time
 import os
 import requests
+import hashlib
 from xml.etree import ElementTree
 
 config_path = 'config.json'
@@ -14,6 +15,32 @@ def load_config(file_path):
     return config
 
 config = load_config(config_path)
+
+def hash_file(file_path):
+    hasher = hashlib.sha256()
+    with open(file_path, 'rb') as f:
+        buf = f.read()
+        hasher.update(buf)
+    return hasher.hexdigest()
+
+def find_and_delete_duplicate(file_path):
+    if not os.path.isfile(file_path):
+        return
+
+    target_hash = hash_file(file_path)
+    directory = os.path.dirname(file_path)
+
+    for root, _, files in os.walk(directory):
+        for file in files:
+            current_file_path = os.path.join(root, file)
+            if current_file_path == file_path:
+                continue
+
+            if hash_file(current_file_path) == target_hash:
+                os.remove(file_path)
+                print(f'Deleted duplicate file: {file_path}')
+                return
+    
 
 def get_update_date(feed):
     update_date = None
@@ -147,6 +174,7 @@ def main():
             save_to_json(entries, update_date, category)
         else:
             print(f'The file {filename} already exists. No action was taken.')
+        find_and_delete_duplicate(filename)
         time.sleep(1)
 
 if __name__ == '__main__':
