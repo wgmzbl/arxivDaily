@@ -44,16 +44,9 @@ def find_and_delete_duplicate(file_path):
 
 def get_update_date(feed):
     update_date = None
-    if hasattr(feed.feed, 'updated_parsed') and feed.feed.updated_parsed:
-        update_date = time.strftime('%y%m%d', feed.feed.updated_parsed)
-    elif hasattr(feed.feed, 'published_parsed') and feed.feed.published_parsed:
-        update_date = time.strftime('%y%m%d', feed.feed.published_parsed)
-    elif 'pubDate' in feed.feed:
-        try:
-            pub_date = datetime.strptime(feed.feed['pubDate'], '%a, %d %b %Y %H:%M:%S %Z')
-            update_date = pub_date.strftime('%y%m%d')
-        except ValueError:
-            update_date = None
+    if 'published' in feed.feed:
+        pub_date = datetime.strptime(feed.feed.published, '%a, %d %b %Y %H:%M:%S %z')
+        update_date = pub_date.strftime('%y%m%d')
 
     if not update_date:
         update_date = datetime.now().strftime('%y%m%d')
@@ -174,7 +167,6 @@ def main():
             save_to_json(entries, update_date, category)
         else:
             print(f'The file {filename} already exists. No action was taken.')
-        find_and_delete_duplicate(filename)
         time.sleep(1)
 
 if __name__ == '__main__':
