@@ -156,7 +156,7 @@ def update_json_file(update_date, category):
 def main():
     categories = config['categories']
     for category in categories:
-        url = f'http://arxiv.org/rss/{category}'
+        url = f'http://rss.arxiv.org/rss/{category}'
         feed = feedparser.parse(url)
         update_date = get_update_date(feed)
         filename = f'{config["datapath"]}/{category}/{update_date}.json'

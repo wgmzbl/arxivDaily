@@ -12,6 +12,8 @@
           <div class="entry-summary">{{ paper.summary }}</div>
           <div v-if="paper.note" class="entry-note"><b>Note: </b>{{ paper.note }}</div>
           <button @click="navigateTo(paper.url)"><i class="fa fa-file-pdf-o"></i></button>
+          <button @click="navigateTo('https://arxiv.org/html/'+paper.arxivId)"><i class="fa fa-file-text"></i></button>
+          <button @click="navigateTo('https://arxiv.org/abs/'+paper.arxivId)"><i class="fa fa-link"></i></button>
           <button @click="openNoteModal(paper)"><i class="fa fa-sticky-note-o"></i></button>
           <button @click="deleteInteresting(paper.arxivId)"><i class="fa fa-trash"></i></button>
           <div v-if="showNoteModal && selectedPaperId === paper.arxivId" class="note-modal">

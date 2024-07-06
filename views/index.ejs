@@ -286,7 +286,9 @@
                 .append(createSubjects(entry.subject))
                 .append(entry.submitTime ? `<p class="entry-submitTime submitTime">Submit time: ${entry.submitTime}</p>` : '')
                 .append(`<p class="entry-summary summary">Summary: ${entry.Summary}</p>`)
-                .append(`<button class='mobile-button' onclick="openLink(event,'${entry['PDF Link']}')">Open <i class="fa fa-file-pdf-o"></i></button>`);
+                .append(`<button class='mobile-button' onclick="openLink(event,'${entry['PDF Link']}')"><i class="fa fa-file-pdf-o"></i></button>`)
+                .append(`<button class='mobile-button' onclick="openLink(event,'${"https://arxiv.org/abs/" + entry['Arxiv ID']}')"><i class="fa fa-link"></i></button>`)
+                .append(`<button class='mobile-button' onclick="openLink(event,'${"https://arxiv.org/html/" + entry['Arxiv ID']}')"><i class="fa fa-file-text"></i></button>`);
               <% if (loggedIn && isAdmin) { %>
               entryDiv.append(`<button class='mobile-button' onclick="downloadurl(this,event,'${entry['Arxiv ID']}','${date}', 'interesting', '<%=category%>')"><i class="fa fa-download"></i> Intersting</button>`)
                 .append(`<button class='mobile-button' onclick="downloadurl(this,event,'${entry['Arxiv ID']}','${date}', 'related', '<%=category%>')"><i class="fa fa-download"></i> Related</button>`);
